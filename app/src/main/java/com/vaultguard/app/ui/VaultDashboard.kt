@@ -38,6 +38,35 @@ fun VaultDashboard(
     val prefs = remember { context.getSharedPreferences("vault_guard_prefs", android.content.Context.MODE_PRIVATE) }
     var isBiometricsEnabled by remember { mutableStateOf(prefs.getBoolean("biometrics_enabled", false)) }
 
+    // Biometric Verification Logic
+    val verifyBiometrics = {
+        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
+        val biometricPrompt = androidx.biometric.BiometricPrompt(
+            context as androidx.fragment.app.FragmentActivity,
+            executor,
+            object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    // SUCCESS: Enable and Save
+                    isBiometricsEnabled = true
+                    prefs.edit().putBoolean("biometrics_enabled", true).apply()
+                }
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    // Failed: Do nothing (remains disabled)
+                }
+            }
+        )
+
+        val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Verify Identity")
+            .setSubtitle("Confirm biometrics to enable this feature")
+            .setNegativeButtonText("Cancel")
+            .build()
+            
+        biometricPrompt.authenticate(promptInfo)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadSecrets()
     }
@@ -57,9 +86,15 @@ fun VaultDashboard(
                         Text(text = "Enable Biometric Login")
                         Switch(
                             checked = isBiometricsEnabled,
-                            onCheckedChange = { 
-                                isBiometricsEnabled = it
-                                prefs.edit().putBoolean("biometrics_enabled", it).apply()
+                            onCheckedChange = { shouldEnable ->
+                                if (shouldEnable) {
+                                    // REQUIRE VERIFICATION to Turn ON
+                                    verifyBiometrics()
+                                } else {
+                                    // Turn OFF immediately
+                                    isBiometricsEnabled = false
+                                    prefs.edit().putBoolean("biometrics_enabled", false).apply()
+                                }
                             }
                         )
                     }
