@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Deny cleartext (HTTP) traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Allow User certificates for debugging IF needed, but strictly limit in production -->
+        </trust-anchors>
+    </base-config>
+
+    <!-- Certificate Pinning for Production API -->
+    <domain-config>
+        <domain includeSubdomains="true">zerokeep.vercel.app</domain>
+        <pin-set expiration="2026-01-01">
+            <!-- Vercel SHA-256 Fingerprint -->
+            <pin digest="SHA-256">DZM9Oxxp3uxt5JJnpUtfT6flVVHLDXP55RI/BtoaY1E=</pin>
+            <!-- Backup Pin (e.g., Let's Encrypt Root X1) -->
+            <pin digest="SHA-256">jQJTbIh0grw0/1TkHSumWb+Fs0Ggogr621gT3PvPKG0=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

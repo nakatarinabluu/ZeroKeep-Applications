@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Trust Theme: Deep Blue & Silver -->
+    <!-- Swiss Minimal Theme -->
+    <color name="primary_text">#FF1D1D1F</color>
+    <color name="secondary_text">#FF86868B</color>
+    <color name="background_light">#FFF5F5F7</color> 
+    <color name="surface_white">#FFFFFFFF</color>
+    <color name="accent_blue">#FF2962FF</color>
+    
+    <!-- Semantic Colors -->
+    <color name="error_red">#FFD32F2F</color>
+    <color name="success_green">#FF34C759</color>
+</resources>

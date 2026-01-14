@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">ZeroKeep</string>
+    <string name="title_add_secret">Add New Secret</string>
+    <string name="label_service_name">Service Name (e.g. Netflix)</string>
+    <string name="label_username">Username / Email</string>
+    <string name="label_password">Password</string>
+    <string name="btn_encrypt_save">Encrypt &amp; Save</string>
+    <string name="content_desc_back">Back</string>
+
+    <!-- Setup Screen -->
+    <string name="title_setup">ZeroKeep Setup</string>
+    <string name="label_recovery_phrase">Your Recovery Phrase</string>
+    <string name="btn_written_down">I have written it down</string>
+
+    <!-- Auth Screen -->
+    <string name="title_unlock">Unlock Vault</string>
+    <string name="msg_attempts_remaining">Attempts Remaining: %d</string>
+    <string name="label_master_password">Master Password</string>
+    <string name="btn_unlock">Unlock</string>
+    <string name="btn_biometrics">Use Biometrics</string>
+</resources>
