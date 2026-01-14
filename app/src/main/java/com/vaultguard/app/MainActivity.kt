@@ -66,20 +66,14 @@ fun ZeroKeepApp(isSetupComplete: Boolean) {
         }
         composable("setup") {
             val context = androidx.compose.ui.platform.LocalContext.current
-            SetupScreen(onSetupComplete = { payload ->
+            SetupScreen(onSetupComplete = { password ->
                 val prefs = context.getSharedPreferences("vault_guard_prefs", android.content.Context.MODE_PRIVATE)
                 
-                val parts = payload.split("|")
-                val masterPassword = parts[0]
-                val duressPassword = if (parts.size > 1) parts[1] else null
-                
+                // Save MASTER PASSWORD
                 val editor = prefs.edit()
                     .putBoolean("is_setup_complete", true)
-                    .putString("master_password", masterPassword)
-
-                if (duressPassword != null) {
-                    editor.putString("duress_password", duressPassword)
-                }
+                    .putString("master_password", password)
+                    .remove("duress_password") // Clear any old duress password (setup now excludes it)
 
                 editor.apply()
                 

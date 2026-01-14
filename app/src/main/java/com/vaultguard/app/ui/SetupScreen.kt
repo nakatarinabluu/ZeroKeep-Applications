@@ -15,9 +15,11 @@ import androidx.compose.ui.unit.sp
 
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import com.vaultguard.app.security.MnemonicUtils
 
 @Composable
@@ -139,9 +141,10 @@ fun SetupForm(
     onBack: () -> Unit
 ) {
     var password by remember { mutableStateOf("") }
-    var duressPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var recoveryInput by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -177,9 +180,11 @@ fun SetupForm(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Generate New Phrase", color = Color(0xFF64B5F6))
             }
+        } else if (isRestore) {
+            Spacer(modifier = Modifier.height(16.dp))
+        } else {
+             Spacer(modifier = Modifier.height(16.dp))
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
 
         if (!isRestore && mnemonic != null) {
             // SHOW MNEMONIC
@@ -219,7 +224,16 @@ fun SetupForm(
             onValueChange = { password = it },
             label = { Text("Set New Master Password") },
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisible)
+                     Icons.Filled.Visibility
+                else Icons.Filled.VisibilityOff
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = null, tint = Color.Gray)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -230,28 +244,21 @@ fun SetupForm(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // DURESS PASSWORD (Optional)
+        
+        // CONFIRM PASSWORD
         OutlinedTextField(
-            value = duressPassword,
-            onValueChange = { duressPassword = it },
-            label = { Text("Set Panic Password (Optional)") },
-            placeholder = { Text("e.g. 0000") },
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Master Password") },
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedBorderColor = Color(0xFF64B5F6),
-                unfocusedBorderColor = Color.Red // Distinctive Color for Danger
+                unfocusedBorderColor = Color.Gray
             ),
             modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = "⚠️ Entering this will wipe all data.",
-            color = Color(0xFFE57373),
-            fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.Start)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -262,12 +269,11 @@ fun SetupForm(
                      error = "Please enter all 12 words separated by spaces."
                 } else if (password.length < 6) {
                     error = "Password must be at least 6 characters"
-                } else if (duressPassword.isNotEmpty() && duressPassword == password) {
-                    error = "Panic Password cannot be the same as Master Password!"
+                } else if (password != confirmPassword) {
+                    error = "Passwords do not match!"
                 } else {
-                    // Combine passwords: "master|duress"
-                    val payload = if (duressPassword.isNotEmpty()) "$password|$duressPassword" else password
-                    onSetupComplete(payload)
+                    // Send ONLY password (Duress moved to settings)
+                    onSetupComplete(password)
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),

@@ -31,6 +31,39 @@ fun AuthScreen(
     
     val isWiped = authState is AuthState.Wiped
     val isError = attempts > 0
+    
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    // Biometric Logic (Extracted)
+    val triggerBiometrics = {
+        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
+        val biometricPrompt = androidx.biometric.BiometricPrompt(
+            context as androidx.fragment.app.FragmentActivity,
+            executor,
+            object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    viewModel.biometricUnlockSuccess()
+                }
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    // If user cancels, we just stay on password screen
+                }
+            }
+        )
+
+        val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Biometric Login")
+            .setSubtitle("Log in using your biometric credential")
+            .setNegativeButtonText("Use Password")
+            .build()
+        // Check if hardware available before asking
+        try {
+           biometricPrompt.authenticate(promptInfo)
+        } catch (e: Exception) {
+           // Ignore if hardware unavailable
+        }
+    }
 
     // Side Effects
     LaunchedEffect(authState) {
@@ -39,9 +72,13 @@ fun AuthScreen(
             viewModel.resetState()
         }
         if (authState is AuthState.Wiped) {
-             // In a real app, navigate to a fatal error screen or crash
              throw SecurityException((authState as AuthState.Wiped).reason)
         }
+    }
+    
+    // Trigger Biometrics ONCE on start
+    LaunchedEffect(Unit) {
+        triggerBiometrics()
     }
 
     Column(
@@ -89,34 +126,7 @@ fun AuthScreen(
             Text(stringResource(R.string.btn_unlock), color = Color.White)
         }
         
-        val context = androidx.compose.ui.platform.LocalContext.current
-        TextButton(onClick = { 
-            // Biometric Auth Logic
-            val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
-            val biometricPrompt = androidx.biometric.BiometricPrompt(
-                context as androidx.fragment.app.FragmentActivity,
-                executor,
-                object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        viewModel.biometricUnlockSuccess()
-                    }
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        // Handle error (optional: show toast)
-                    }
-                }
-            )
-
-            val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Biometric Login")
-                .setSubtitle("Log in using your biometric credential")
-                .setNegativeButtonText("Use Password")
-                .build()
-
-            biometricPrompt.authenticate(promptInfo)
-
-        }) {
+        TextButton(onClick = { triggerBiometrics() }) {
             Text(stringResource(R.string.btn_biometrics), color = Color.Gray)
         }
     }
