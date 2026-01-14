@@ -25,7 +25,9 @@ class SecretRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+                val errorBody = response.errorBody()?.string()
+                android.util.Log.e("SecretRepo", "Save failed: ${response.code()} Body: $errorBody")
+                Result.failure(IOException("Error: ${response.code()} $errorBody"))
             }
         } catch (e: Exception) {
             Result.failure(e)

@@ -27,7 +27,7 @@ class SecretViewModel @Inject constructor(
         viewModelScope.launch {
             // "default_user" matches AddSecretScreen. In real app, get from User Session.
             val username = "default_user" 
-            val ownerHash = "owner_${java.util.Base64.getEncoder().encodeToString(username.toByteArray())}"
+            val ownerHash = sha256(username)
             
             val result = repository.fetchSecrets(ownerHash)
             result.onSuccess { responseList ->
@@ -83,6 +83,11 @@ class SecretViewModel @Inject constructor(
         return data
     }
     
+    private fun sha256(input: String): String {
+        val bytes = java.security.MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
     fun saveSecret(title: String, username: String, secret: String) {
         viewModelScope.launch {
             try {
@@ -92,9 +97,9 @@ class SecretViewModel @Inject constructor(
                 val iv = ivBytes.joinToString("") { "%02x".format(it) }
                 val encryptedBlob = encryptedBytes.joinToString("") { "%02x".format(it) }
                 
-                // For MVP, we still save title hash but maybe we should've saved encrypted title.
-                val ownerHash = "owner_${java.util.Base64.getEncoder().encodeToString(username.toByteArray())}"
-                val titleHash = "title_${java.util.Base64.getEncoder().encodeToString(title.toByteArray())}" // We can't reverse this!
+                // FIXED: Use SHA-256 to ensure length > 32 (Backend requires min(32))
+                val ownerHash = sha256(username)
+                val titleHash = sha256(title)
 
                 val result = repository.saveSecret(id, ownerHash, titleHash, encryptedBlob, iv)
                 _saveState.value = result
