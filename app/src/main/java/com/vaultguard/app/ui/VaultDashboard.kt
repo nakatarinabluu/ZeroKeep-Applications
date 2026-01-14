@@ -106,7 +106,7 @@ fun VaultDashboard(
 
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(text = "DANGER ZONE", color = Color.Red, style = MaterialTheme.typography.labelSmall)
-                    HorizontalDivider(color = Color.Red)
+                    Divider(color = Color.Red)
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     var showPanicConfirm by remember { mutableStateOf(false) }
