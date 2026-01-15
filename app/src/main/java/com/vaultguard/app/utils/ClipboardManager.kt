@@ -11,8 +11,12 @@ import android.os.PersistableBundle
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-class ClipboardManager(private val context: Context) : DefaultLifecycleObserver {
+class ClipboardManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) : DefaultLifecycleObserver {
 
     private val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     private val handler = Handler(Looper.getMainLooper())

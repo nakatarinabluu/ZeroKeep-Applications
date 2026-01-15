@@ -74,7 +74,7 @@ fun ZeroKeepApp(isSetupComplete: Boolean, prefs: android.content.SharedPreferenc
             })
         }
         composable("setup") {
-            val context = androidx.compose.ui.platform.LocalContext.current
+
             SetupScreen(onSetupComplete = { password ->
                 
                 // Save MASTER PASSWORD

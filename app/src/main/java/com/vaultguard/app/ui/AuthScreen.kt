@@ -30,7 +30,7 @@ fun AuthScreen(
         else -> 0
     }
     
-    val isWiped = authState is AuthState.Wiped
+
     val isError = attempts > 0
     
     val context = androidx.compose.ui.platform.LocalContext.current

@@ -40,7 +40,8 @@ class SetupViewModel @Inject constructor(
 
                 val kdfResult = kdfGenerator.deriveKey(mnemonicString, deterministicSalt)
                 val keyBytes = kdfResult.first
-                val salt = kdfResult.second
+
+                // val salt = kdfResult.second // Unused in this logic as we use deterministic salt
                 val derivedKey = javax.crypto.spec.SecretKeySpec(keyBytes, "AES")
                 
                 // 2. Strict Verification (If Restoring)

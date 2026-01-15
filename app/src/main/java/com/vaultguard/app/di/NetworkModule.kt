@@ -39,7 +39,6 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        @ApplicationContext context: Context,
         hmacInterceptor: HmacInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
