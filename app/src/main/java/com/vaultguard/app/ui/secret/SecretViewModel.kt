@@ -96,7 +96,10 @@ class SecretViewModel @Inject constructor(
                 val iv = ivBytes.joinToString("") { "%02x".format(it) }
                 val encryptedBlob = encryptedBytes.joinToString("") { "%02x".format(it) }
                 
-                val ownerHash = sha256(username)
+                // FIX: ownerHash must be consistent for the App User, NOT the secret's username.
+                // Since we don't have multi-user login yet, we use the same "default_user" as loadSecrets.
+                val appOwnerUsername = "default_user" 
+                val ownerHash = sha256(appOwnerUsername)
                 val titleHash = sha256(title)
 
                 val result = repository.saveSecret(id, ownerHash, titleHash, encryptedBlob, iv)
