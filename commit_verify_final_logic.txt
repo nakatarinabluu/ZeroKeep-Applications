@@ -1,0 +1,5 @@
+commit 133577c11a76b26109c6b22c65518918f02b2836
+Author: Your Name <you@example.com>
+Date:   Fri Jan 16 00:47:12 2026 +0700
+
+    fix: Ensure deleteKey uses injected EncryptedSharedPreferences for consistent wipe

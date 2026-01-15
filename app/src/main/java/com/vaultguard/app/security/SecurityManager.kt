@@ -94,7 +94,9 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
      * It encrypts (wraps) the Master Key using the Device-Bound Key (Biometric protected).
      */
     fun saveMasterKey(masterKey: SecretKey) {
-        val (iv, wrappedKey) = encryptLocal(masterKey.encoded)
+        val encryptedPair = encryptLocal(masterKey.encoded)
+        val iv = encryptedPair.first
+        val wrappedKey = encryptedPair.second
         
         prefs.edit()
             .putString(KEY_WRAPPED_BLOB, android.util.Base64.encodeToString(wrappedKey, android.util.Base64.NO_WRAP))
