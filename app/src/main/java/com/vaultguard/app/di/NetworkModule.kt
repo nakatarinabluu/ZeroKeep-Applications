@@ -43,16 +43,8 @@ object NetworkModule {
         @ApplicationContext context: Context,
         hmacInterceptor: HmacInterceptor
     ): OkHttpClient {
-/*
-        val certificatePinner = okhttp3.CertificatePinner.Builder()
-            // Vercel SHA-256 Fingerprint (Provided by User)
-            .add("zerokeep.vercel.app", "sha256/DZM9Oxxp3uxt5JJnpUtfT6flVVHLDXP55RI/BtoaY1E=")
-            .build()
-        */
-
         return OkHttpClient.Builder()
             .addInterceptor(hmacInterceptor)
-            // .certificatePinner(certificatePinner) // Disabled for connectivity fix
             // Hardening: Short timeouts to prevent hanging connections
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)

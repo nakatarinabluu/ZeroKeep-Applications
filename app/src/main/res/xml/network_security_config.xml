@@ -12,9 +12,7 @@
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">zerokeep.vercel.app</domain>
         <pin-set expiration="2026-01-01">
-            <!-- Vercel SHA-256 Fingerprint -->
             <pin digest="SHA-256">DZM9Oxxp3uxt5JJnpUtfT6flVVHLDXP55RI/BtoaY1E=</pin>
-            <!-- Backup Pin (Always good practice, but skipping for now or use Vercel Backup) -->
         </pin-set>
     </domain-config>
 </network-security-config>
