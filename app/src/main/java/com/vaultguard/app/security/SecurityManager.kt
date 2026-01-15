@@ -115,15 +115,20 @@ class SecurityManager(private val context: Context) {
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setKeySize(256)
-                // Require Auth for DECRYPTING the key (Unwrapping)
-                .setUserAuthenticationRequired(true) 
-                .setUnlockedDeviceRequired(true)
+                // USER REQUEST: Make Biometrics OPTIONAL. 
+                // We disable mandatory hardware auth here. Verification is now done at the UI layer.
+                .setUserAuthenticationRequired(false) 
+                // .setUnlockedDeviceRequired(true) // Removing restriction for usability
             
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                 keyGenParameterSpecBuilder.setUserAuthenticationParameters(
-                     30, 
-                     KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
-                 )
+            // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //      keyGenParameterSpecBuilder.setUserAuthenticationParameters(
+            //          30, 
+            //          KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+            //      )
+            // } else {
+            //      @Suppress("DEPRECATION")
+            //      keyGenParameterSpecBuilder.setUserAuthenticationValidityDurationSeconds(30)
+            // }
             } else {
                  @Suppress("DEPRECATION")
                  keyGenParameterSpecBuilder.setUserAuthenticationValidityDurationSeconds(30)

@@ -132,6 +132,7 @@ fun RestoreWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) 
 }
 
 @Composable
+@Composable
 fun SetupForm(
     title: String,
     instruction: String,
@@ -139,13 +140,30 @@ fun SetupForm(
     onRegenerateMnemonic: () -> Unit,
     isRestore: Boolean,
     onSetupComplete: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: SetupViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var recoveryInput by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
+    
+    // State Observation
+    val setupState by viewModel.setupState.collectAsState()
+    var displayError by remember { mutableStateOf<String?>(null) }
+    val isLoading = setupState is SetupState.Loading
+
+    LaunchedEffect(setupState) {
+        when (val state = setupState) {
+            is SetupState.Success -> onSetupComplete(state.password)
+            is SetupState.Error -> displayError = state.message
+            else -> {}
+        }
+    }
+
+    // Set displayError if local validation fails, clear it otherwise
+    // Note: This needs to coexist with ViewModel errors. 
+    // Simplified: local validation sets displayError, VM error overwrites it.
 
     Column(
         modifier = Modifier
@@ -155,6 +173,7 @@ fun SetupForm(
             .verticalScroll(androidx.compose.foundation.rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // ... Header ...
         // Header with Back Button
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -264,81 +283,45 @@ fun SetupForm(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ... Biometric Logic ...
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val securityManager = remember { com.vaultguard.app.security.SecurityManager(context) }
-        var showBiometricPrompt by remember { mutableStateOf(false) }
-
-        if (showBiometricPrompt) {
-            val activity = context as? androidx.fragment.app.FragmentActivity
-            if (activity != null) {
-                val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
-                val biometricPrompt = androidx.biometric.BiometricPrompt(activity, executor,
-                    object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
-                        override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
-                            showBiometricPrompt = false
-                            // 1. Derive Key with Passphrase (Double-Lock)
-                            val masterKey = if (isRestore) {
-                                val words = recoveryInput.trim().split("\\s+".toRegex())
-                                // In Restore Mode: 'password' is the "Old Password / Passphrase" entered by user
-                                MnemonicUtils.deriveKey(words, password)
-                            } else {
-                                // In Create Mode: 'password' is the "New Master Password"
-                                MnemonicUtils.deriveKey(mnemonic ?: emptyList(), password)
-                            }
-                            
-                            // 2. Save Key (Wrap with Device Key)
-                            try {
-                                securityManager.saveMasterKey(masterKey)
-                                // 3. Finish
-                                onSetupComplete(password)
-                            } catch (e: Exception) {
-                                error = "Failed to secure key: ${e.message}"
-                            }
-                        }
-                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                            showBiometricPrompt = false
-                            error = "Auth Error: $errString"
-                        }
-                        override fun onAuthenticationFailed() {
-                            // keeps prompting
-                        }
-                    })
-
-                val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
-                    .setTitle("Secure your Vault")
-                    .setSubtitle("Authenticate to bind your keys to this device")
-                    .setNegativeButtonText("Cancel")
-                    .build()
-
-                LaunchedEffect(Unit) {
-                    biometricPrompt.authenticate(promptInfo)
-                }
-            }
-        }
-
         Button(
             onClick = {
                 if (isRestore && recoveryInput.split("\\s+".toRegex()).size != 12) {
-                     error = "Please enter exactly 12 words."
+                     displayError = "Please enter exactly 12 words."
                 } else if (password.length < 6) {
-                    error = "Password must be at least 6 characters"
+                    displayError = "Password must be at least 6 characters"
                 } else if (password != confirmPassword) {
-                    error = "Passwords do not match!"
+                    displayError = "Passwords do not match!"
                 } else {
-                    // Trigger Biometric Bind
-                    showBiometricPrompt = true
+                    // Start Verification Flow
+                    displayError = null
+                    
+                    val words = if (isRestore) {
+                        recoveryInput.trim().split("\\s+".toRegex())
+                    } else {
+                        mnemonic ?: emptyList()
+                    }
+                    
+                    viewModel.finalizeSetup(words, password, isRestore)
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isRestore) "Restore & Finish" else "Connect & Finish", color = MaterialTheme.colorScheme.onPrimary)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(if (isRestore) "Restore & Finish" else "Connect & Finish", color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
         
-        if (error != null) {
+        if (displayError != null) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = error!!, color = MaterialTheme.colorScheme.error)
+            Text(text = displayError!!, color = MaterialTheme.colorScheme.error)
         }
     }
 }

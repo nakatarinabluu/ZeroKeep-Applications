@@ -63,6 +63,23 @@ class AuthViewModel @Inject constructor(
     fun biometricUnlockSuccess() {
         _authState.value = AuthState.Success
     }
+
+    /**
+     * User-initiated Factory Reset / Logout.
+     * Clears all keys and preferences.
+     */
+    fun wipeLocalData() {
+        // 1. Destroy Crypto Keys
+        securityManager.deleteKey()
+        
+        // 2. Clear App Preferences (Auth, Flags, etc.)
+        context.getSharedPreferences("vault_guard_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+            
+        resetState()
+    }
 }
 
 sealed class AuthState {

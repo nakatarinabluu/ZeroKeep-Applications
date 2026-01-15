@@ -83,11 +83,18 @@ fun ZeroKeepApp(isSetupComplete: Boolean) {
             })
         }
         composable("auth") {
-            AuthScreen(onAuthenticated = {
-                navController.navigate("dashboard") {
-                    popUpTo("auth") { inclusive = true }
+            AuthScreen(
+                onAuthenticated = {
+                    navController.navigate("dashboard") {
+                        popUpTo("auth") { inclusive = true }
+                    }
+                },
+                onReset = {
+                    navController.navigate("setup") {
+                        popUpTo("auth") { inclusive = true }
+                    }
                 }
-            })
+            )
         }
         composable("dashboard") {
             VaultDashboard(

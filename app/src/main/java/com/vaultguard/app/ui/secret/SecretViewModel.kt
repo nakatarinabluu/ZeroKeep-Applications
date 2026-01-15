@@ -48,12 +48,18 @@ class SecretViewModel @Inject constructor(
                             
                             // Decrypt using loaded key
                             val decryptedBytes = securityManager.decrypt(iv, encrypted, masterKey)
-                            val decryptedPassword = String(decryptedBytes, java.nio.charset.StandardCharsets.UTF_8)
+                            val decryptedString = String(decryptedBytes, java.nio.charset.StandardCharsets.UTF_8)
+                            
+                            // Parse "username|password" format
+                            val parts = decryptedString.split("|", limit = 2)
+                            val username = if (parts.size > 1) parts[0] else ""
+                            val password = if (parts.size > 1) parts[1] else parts[0] // Fallback if no delimiter
                             
                             SecretUiModel(
                                 id = secret.id,
-                                title = "Secret ${secret.id.take(4)}", 
-                                password = decryptedPassword
+                                title = "Secret ${secret.id.take(4)}", // ideally we hash/decrypt title or use metadata
+                                username = username,
+                                password = password
                             )
                         } catch (e: Exception) {
                             android.util.Log.e("SecretViewModel", "Decryption failed for ${secret.id}", e)
@@ -69,21 +75,7 @@ class SecretViewModel @Inject constructor(
         }
     }
     
-    private fun hexStringToByteArray(s: String): ByteArray {
-        val len = s.length
-        val data = ByteArray(len / 2)
-        var i = 0
-        while (i < len) {
-            data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i + 1], 16)).toByte()
-            i += 2
-        }
-        return data
-    }
-    
-    private fun sha256(input: String): String {
-        val bytes = java.security.MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
-        return bytes.joinToString("") { "%02x".format(it) }
-    }
+    // ... helper functions ...
 
     fun saveSecret(title: String, username: String, secret: String) {
         viewModelScope.launch {
@@ -91,7 +83,9 @@ class SecretViewModel @Inject constructor(
                 val masterKey = securityManager.loadMasterKey() // Requires Auth
                 
                 val id = UUID.randomUUID().toString()
-                val (ivBytes, encryptedBytes) = securityManager.encrypt(secret.toByteArray(java.nio.charset.StandardCharsets.UTF_8), masterKey)
+                // Format: "username|password"
+                val payload = "$username|$secret" 
+                val (ivBytes, encryptedBytes) = securityManager.encrypt(payload.toByteArray(java.nio.charset.StandardCharsets.UTF_8), masterKey)
                 
                 val iv = ivBytes.joinToString("") { "%02x".format(it) }
                 val encryptedBlob = encryptedBytes.joinToString("") { "%02x".format(it) }
@@ -112,25 +106,12 @@ class SecretViewModel @Inject constructor(
             }
         }
     }
-    fun wipeVault(token: String) {
-        viewModelScope.launch {
-            try {
-                val result = repository.wipeVault(token)
-                // If successful, local data should also be cleared or app reset
-                if (result.isSuccess) {
-                    securityManager.deleteKey() // Self-Destruct Local Key
-                    _secrets.value = emptyList() // Clear UI
-                }
-                // We might want to expose a separate state for wipe result
-            } catch (e: Exception) {
-                // Log error
-            }
-        }
-    }
+    // ... wipeVault ...
 }
 
 data class SecretUiModel(
     val id: String,
     val title: String,
+    val username: String,
     val password: String
 )

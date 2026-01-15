@@ -18,6 +18,7 @@ import com.vaultguard.app.ui.auth.AuthViewModel
 @Composable
 fun AuthScreen(
     onAuthenticated: () -> Unit,
+    onReset: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var password by remember { mutableStateOf("") }
@@ -131,6 +132,39 @@ fun AuthScreen(
         
         TextButton(onClick = { triggerBiometrics() }) {
             Text(stringResource(R.string.btn_biometrics), color = MaterialTheme.colorScheme.secondary)
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Reset / Switch Account Logic
+        var showResetConfirm by remember { mutableStateOf(false) }
+        TextButton(onClick = { showResetConfirm = true }) {
+            Text("Switch Account / Reset Wallet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        if (showResetConfirm) {
+            AlertDialog(
+                onDismissRequest = { showResetConfirm = false },
+                title = { Text("Reset Wallet?") },
+                text = { Text("This will remove the current account from this device. You can Restore it later using your Recovery Phrase. Proceed?", color = MaterialTheme.colorScheme.onSurface) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            // Properly wipe all data via ViewModel
+                            viewModel.wipeLocalData()
+                            onReset() // Navigate to Setup
+                        }
+                    ) {
+                        Text("Reset", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetConfirm = false }) {
+                        Text("Cancel")
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         }
     }
 }
