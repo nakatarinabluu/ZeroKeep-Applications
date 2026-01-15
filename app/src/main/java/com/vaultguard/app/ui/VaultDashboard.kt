@@ -23,7 +23,6 @@ import com.vaultguard.app.ui.secret.SecretViewModel
 import com.vaultguard.app.ui.secret.SecretUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultDashboard(
     onAddSecretClick: () -> Unit,
@@ -36,7 +35,7 @@ fun VaultDashboard(
     val context = androidx.compose.ui.platform.LocalContext.current
     // Injected/Instantiated Utils
     val customClipboardManager = remember { com.vaultguard.app.utils.ClipboardManager(context) }
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
 
     // SECURE LIFECYCLE MANAGEMENT: Purge RAM & Clipboard on Background
     DisposableEffect(lifecycleOwner) {

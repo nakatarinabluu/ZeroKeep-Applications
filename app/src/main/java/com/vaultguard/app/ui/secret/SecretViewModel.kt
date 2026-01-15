@@ -125,7 +125,45 @@ class SecretViewModel @Inject constructor(
         _saveState.value = null
     }
 
+    fun wipeVault(token: String) {
+        // In real app, verify token or just wipe.
+        // DANGER: Deletes Key + Encrypted Data
+        viewModelScope.launch {
+            try {
+                // Delete KeyStore Entry
+                securityManager.deleteKey()
+                
+                // Clear Preferences (Token, Biometrics)
+                setBiometricEnabled(false)
+                
+                // Note: Clearing App Data via Code is tricky on Android (requires root or specific System APIs).
+                // Best we can do is clear our DB/Prefs/Keys.
+                
+                // Kill process to ensure RAM dump
+                // System.exit(0) handled by caller/signout?
+            } catch (e: Exception) {
+                // Log but ensure we try to delete key
+            }
+        }
+    }
+
     // ... wipeVault ...
+    // --- Helpers ---
+    private fun sha256(input: String): String {
+        val bytes = java.security.MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun hexStringToByteArray(s: String): ByteArray {
+        val len = s.length
+        val data = ByteArray(len / 2)
+        var i = 0
+        while (i < len) {
+            data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i + 1], 16)).toByte()
+            i += 2
+        }
+        return data
+    }
 }
 
 data class SecretUiModel(

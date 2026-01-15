@@ -1,0 +1,5 @@
+commit 954c9a6359a6897844dc273071ee0cda81d6065d
+Author: Your Name <you@example.com>
+Date:   Fri Jan 16 01:12:19 2026 +0700
+
+    fix: Restore missing SetupViewModel function body and signature

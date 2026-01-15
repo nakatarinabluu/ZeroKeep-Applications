@@ -132,7 +132,6 @@ fun RestoreWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) 
 }
 
 @Composable
-@Composable
 fun SetupForm(
     title: String,
     instruction: String,
@@ -301,7 +300,7 @@ fun SetupForm(
                         mnemonic ?: emptyList()
                     }
                     
-                    viewModel.finalizeSetup(words, password, isRestore)
+                    viewModel.completeSetup(password, words, isRestore)
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),

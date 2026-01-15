@@ -3,7 +3,6 @@ package com.vaultguard.app.di
 import android.content.Context
 import com.vaultguard.app.data.remote.VaultApi
 import com.vaultguard.app.network.HmacInterceptor
-import com.vaultguard.app.network.NetworkClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

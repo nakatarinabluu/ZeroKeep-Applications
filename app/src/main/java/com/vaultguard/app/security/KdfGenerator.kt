@@ -29,7 +29,7 @@ class KdfGenerator @Inject constructor() {
             password = mnemonic.toByteArray(Charsets.UTF_8),
             salt = actualSalt,
             tCostInIterations = ITERATIONS,
-            mCostInKibibytes = MEMORY,
+            mCostInKibibyte = MEMORY,
             parallelism = PARALLELISM,
             hashLengthInBytes = KEY_LENGTH
         )
