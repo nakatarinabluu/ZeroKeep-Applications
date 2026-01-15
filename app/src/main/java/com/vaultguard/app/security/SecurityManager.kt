@@ -231,8 +231,8 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
         if (keyStore.containsAlias(WRAP_KEY_ALIAS)) {
             keyStore.deleteEntry(WRAP_KEY_ALIAS)
         }
-        // Also clear prefs
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+        // Also clear prefs (Using the injected EncryptedSharedPreferences)
+        prefs.edit().clear().apply()
     }
 
     /**
