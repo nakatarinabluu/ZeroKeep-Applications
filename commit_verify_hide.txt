@@ -1,0 +1,5 @@
+commit b66f5db0d0dc5f286a68c2bb4b8d26fcbac69fbb
+Author: Your Name <you@example.com>
+Date:   Thu Jan 15 22:37:40 2026 +0700
+
+    chore: Hide obfuscation script from repository to protect source secrets
