@@ -99,17 +99,13 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
     // ...
 
     private fun isDeviceSecure(): Boolean {
-        // ... (existing checks) ...
-        
-        // 6. NATIVE FRIDA DETECTION (Memory Scan)
+        // 1. NATIVE FRIDA PROTECTION (First Line of Defense)
         if (checkFrida()) {
              android.util.Log.e("SecurityManager", "Frida/Hooking Detected via Native Scan!")
              return false
         }
 
-        return true
-    }
-        // 1. Check for basic Root binaries
+        // 2. Check for basic Root binaries
         val paths = arrayOf(
             "/system/app/Superuser.apk",
             "/sbin/su",
@@ -125,14 +121,14 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
             if (java.io.File(path).exists()) return false
         }
 
-        // 2. Check for Test Keys (Custom ROMs)
+        // 3. Check for Test Keys (Custom ROMs)
         val buildTags = Build.TAGS
         if (buildTags != null && buildTags.contains("test-keys")) return false
 
-        // 3. Check for Debugging
+        // 4. Check for Debugging
         if (android.os.Debug.isDebuggerConnected()) return false
         
-        // 4. Check for Frida / Xposed (Simple check)
+        // 5. Check for Frida / Xposed (Java-based checks)
         try {
             throw Exception("Check")
         } catch (e: Exception) {
@@ -146,7 +142,7 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
             }
         }
 
-        // 5. Check for Emulator
+        // 6. Check for Emulator
         val isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
