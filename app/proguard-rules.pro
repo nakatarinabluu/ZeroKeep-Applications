@@ -26,6 +26,11 @@
 # --- HARDENED SECURITY OBFUSCATION ---
 
 # 1. Flatten package hierarchy (makes analysis harder)
+# OBSIDIAN: Use dictionary for aggressive renaming (a,b,c -> o,0,O,l,1)
+-classobfuscationdictionary proguard-dictionary.txt
+-packageobfuscationdictionary proguard-dictionary.txt
+-obfuscationdictionary proguard-dictionary.txt
+
 -repackageclasses ''
 -allowaccessmodification
 

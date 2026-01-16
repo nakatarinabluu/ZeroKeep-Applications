@@ -246,6 +246,12 @@ fun SetupForm(
             },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            // ANTI-FORENSICS: Disable AutoCorrect and use Text type to evade some Autofill crawlers
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                autoCorrect = false,
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text, 
+                imeAction = androidx.compose.ui.text.input.ImeAction.Next
+            ),
             trailingIcon = {
                 val image = if (passwordVisible)
                      Icons.Filled.Visibility

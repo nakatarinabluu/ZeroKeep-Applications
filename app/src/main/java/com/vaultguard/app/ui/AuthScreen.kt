@@ -108,6 +108,12 @@ fun AuthScreen(
             label = { Text(stringResource(R.string.label_master_password)) },
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
+            // ANTI-FORENSICS: Disable AutoCorrect and use Text type to evade some Autofill crawlers
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                autoCorrect = false,
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
