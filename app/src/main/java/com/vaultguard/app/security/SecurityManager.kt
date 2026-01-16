@@ -1,7 +1,6 @@
 package com.vaultguard.app.security
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -10,31 +9,23 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-
 import android.content.SharedPreferences
+import android.util.Base64
 
 class SecurityManager(private val context: Context, private val prefs: SharedPreferences) {
 
     private val ANDROID_KEYSTORE = "AndroidKeyStore"
-    // New Alias for the WRAPPING Key (Device Local). 
-    // We do NOT use the old "VaultGuardMasterKey" alias for the wrapping key to avoid confusion, 
-    // but effectively we are replacing the old logic.
     private val WRAP_KEY_ALIAS = "VaultGuardDeviceKey" 
     private val TRANSFORMATION = "AES/GCM/NoPadding"
-    // private val PREFS_NAME = "vault_guard_secure_prefs" // REMOVED - Using Injected Prefs
     private val KEY_WRAPPED_BLOB = "wrapped_master_key_blob"
     private val KEY_WRAPPED_IV = "wrapped_master_key_iv"
 
-    // SHA-256 of the Release Keystore (Place your REAL Release Key Hash here)
-    // For now, this is the standard Android Debug Key SHA-256 to allow local testing.
-    // NATIVE METHODS (Secrets hidden in C++)
+    // NATIVE METHODS
     external fun getAppSignature(): String
     external fun checkFrida(): Boolean
 
-    // private val EXPECTED_SIGNATURE = "..." // REMOVED - Moved to Native C++
-
     init {
-        // Load library (if not already loaded by NetworkModule, but good practice to ensure)
+        // Load library
         System.loadLibrary("vaultguard")
         
         if (!isDeviceSecure()) {
@@ -43,12 +34,9 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
         verifyAppSignature()
         generateWrappingKeyIfNotExists()
     }
-    
-    // ...
 
     private fun verifyAppSignature() {
         try {
-            // ... (existing signature retrieval code) ...
             val pm = context.packageManager
             val packageName = context.packageName
             val flags = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
@@ -95,8 +83,6 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
              if (!isDebuggable) throw SecurityException("Signature verification failed", e)
         }
     }
-
-    // ...
 
     private fun isDeviceSecure(): Boolean {
         // 1. NATIVE FRIDA PROTECTION (First Line of Defense)
@@ -163,5 +149,106 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
         if (isEmulator) return false
 
         return true
+    }
+
+    // --- KEY MANAGEMENT ---
+
+    private fun generateWrappingKeyIfNotExists() {
+        try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+            if (!keyStore.containsAlias(WRAP_KEY_ALIAS)) {
+                val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+                val spec = KeyGenParameterSpec.Builder(
+                    WRAP_KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                )
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setRandomizedEncryptionRequired(true)
+                    .build()
+                keyGenerator.init(spec)
+                keyGenerator.generateKey()
+            }
+        } catch (e: Exception) {
+            throw SecurityException("Failed to generate wrapping key", e)
+        }
+    }
+
+    fun saveMasterKey(secretKey: SecretKey) {
+        try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+            val wrappingKey = keyStore.getKey(WRAP_KEY_ALIAS, null) as SecretKey
+
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            cipher.init(Cipher.WRAP_MODE, wrappingKey)
+            
+            val wrappedKeyBytes = cipher.wrap(secretKey)
+            val iv = cipher.iv
+
+            // Store Blob + IV
+            prefs.edit()
+                .putString(KEY_WRAPPED_BLOB, Base64.encodeToString(wrappedKeyBytes, Base64.NO_WRAP))
+                .putString(KEY_WRAPPED_IV, Base64.encodeToString(iv, Base64.NO_WRAP))
+                .apply()
+        } catch (e: Exception) {
+            throw SecurityException("Failed to save master key", e)
+        }
+    }
+
+    fun loadMasterKey(): SecretKey {
+        try {
+            val wrappedBlobStr = prefs.getString(KEY_WRAPPED_BLOB, null) ?: throw SecurityException("No Master Key Found")
+            val ivStr = prefs.getString(KEY_WRAPPED_IV, null) ?: throw SecurityException("No Master Key IV Found")
+
+            val wrappedKeyBytes = Base64.decode(wrappedBlobStr, Base64.NO_WRAP)
+            val iv = Base64.decode(ivStr, Base64.NO_WRAP)
+
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+            val wrappingKey = keyStore.getKey(WRAP_KEY_ALIAS, null) as SecretKey
+
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            val spec = GCMParameterSpec(128, iv)
+            cipher.init(Cipher.UNWRAP_MODE, wrappingKey, spec)
+
+            return cipher.unwrap(wrappedKeyBytes, "AES", Cipher.SECRET_KEY) as SecretKey
+        } catch (e: Exception) {
+            throw SecurityException("Failed to load master key", e)
+        }
+    }
+
+    fun hasMasterKey(): Boolean {
+        return prefs.contains(KEY_WRAPPED_BLOB)
+    }
+
+    fun deleteKey() {
+        try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+            if (keyStore.containsAlias(WRAP_KEY_ALIAS)) {
+                keyStore.deleteEntry(WRAP_KEY_ALIAS)
+            }
+            prefs.edit().remove(KEY_WRAPPED_BLOB).remove(KEY_WRAPPED_IV).apply()
+        } catch (e: Exception) {
+            // Ignore
+        }
+    }
+
+    // --- CRYPTO UTILS ---
+
+    fun encrypt(data: ByteArray, key: SecretKey): Pair<ByteArray, ByteArray> {
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, key)
+        val encrypted = cipher.doFinal(data)
+        return Pair(cipher.iv, encrypted)
+    }
+
+    fun decrypt(iv: ByteArray, encrypted: ByteArray, key: SecretKey): ByteArray {
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        val spec = GCMParameterSpec(128, iv)
+        cipher.init(Cipher.DECRYPT_MODE, key, spec)
+        return cipher.doFinal(encrypted)
     }
 }
