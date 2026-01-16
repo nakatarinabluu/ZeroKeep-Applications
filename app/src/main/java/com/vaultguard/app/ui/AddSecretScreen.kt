@@ -109,53 +109,13 @@ fun AddSecretScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-    // Biometric Logic
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val triggerBiometrics = {
-        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
-        val biometricPrompt = androidx.biometric.BiometricPrompt(
-            context as androidx.fragment.app.FragmentActivity,
-            executor,
-            object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
-                     super.onAuthenticationSucceeded(result)
-                     // Now we are authenticated, save the secret
-                     // We need to use valid values here
-                     viewModel.saveSecret(title, username, "$username|$password")
-                }
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    isSaving = false // Reset loading state
-                    // Show error snackbar
-                    // We can't easily show snackbar from here without a scope, 
-                    // but we can let the user try again.
-                }
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    isSaving = false
-                }
-            }
-        )
 
-        val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
-            .setTitle(context.getString(R.string.title_authenticate_to_save))
-            .setSubtitle(context.getString(R.string.subtitle_authenticate_to_save))
-            .setNegativeButtonText(context.getString(R.string.btn_cancel))
-            .build()
-            
-        try {
-           biometricPrompt.authenticate(promptInfo)
-        } catch (e: Exception) {
-           isSaving = false
-           // Fallback or error handling
-        }
-    }
 
     Button(
         onClick = {
             if (title.isNotEmpty() && password.isNotEmpty()) {
                 isSaving = true
-                triggerBiometrics()
+                viewModel.saveSecret(title, username, "$username|$password")
             }
         },
                 enabled = !isSaving && title.isNotEmpty() && password.isNotEmpty(),

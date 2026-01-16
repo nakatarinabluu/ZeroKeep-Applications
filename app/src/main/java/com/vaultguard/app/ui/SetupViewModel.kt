@@ -17,7 +17,8 @@ import javax.inject.Inject
 class SetupViewModel @Inject constructor(
     private val repository: SecretRepository,
     private val securityManager: SecurityManager,
-    private val kdfGenerator: KdfGenerator
+    private val kdfGenerator: KdfGenerator,
+    private val prefs: android.content.SharedPreferences
 ) : ViewModel() {
 
     private val _setupState = MutableStateFlow<SetupState>(SetupState.Idle)
@@ -54,6 +55,10 @@ class SetupViewModel @Inject constructor(
                 
                 // 3. Save Key Securely
                 securityManager.saveMasterKey(derivedKey)
+                
+                // Explicitly disable Biometrics (User Request: Manual Opt-In Only)
+                prefs.edit().putBoolean("biometrics_enabled", false).apply()
+                
                 _setupState.value = SetupState.Success(password)
                 
             } catch (e: Exception) {

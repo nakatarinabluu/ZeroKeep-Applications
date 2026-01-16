@@ -62,14 +62,34 @@ class SecretViewModel @Inject constructor(
                             val decryptedBytes = securityManager.decrypt(iv, encrypted, masterKey)
                             val decryptedString = String(decryptedBytes, java.nio.charset.StandardCharsets.UTF_8)
                             
-                            // Parse "username|password" format
-                            val parts = decryptedString.split("|", limit = 2)
-                            val username = if (parts.size > 1) parts[0] else ""
-                            val password = if (parts.size > 1) parts[1] else parts[0] // Fallback if no delimiter
+                            // Parse "title|username|password" format (New) OR "username|password" (Old)
+                            val parts = decryptedString.split("|", limit = 3)
+                            
+                            val title: String
+                            val username: String
+                            val password: String
+
+                            // Check format by size
+                            if (parts.size == 3) {
+                                // New Format: title|username|password
+                                title = parts[0]
+                                username = parts[1]
+                                password = parts[2]
+                            } else if (parts.size == 2) {
+                                // Old Format: username|password
+                                title = "Secret ${secret.id.take(4)}" // Fallback Title
+                                username = parts[0]
+                                password = parts[1]
+                            } else {
+                                // Fallback/Error
+                                title = "Unknown Secret"
+                                username = ""
+                                password = parts[0]
+                            }
                             
                             SecretUiModel(
                                 id = secret.id,
-                                title = "Secret ${secret.id.take(4)}", // ideally we hash/decrypt title or use metadata
+                                title = title,
                                 username = username,
                                 password = password
                             )
@@ -95,8 +115,8 @@ class SecretViewModel @Inject constructor(
                 val masterKey = securityManager.loadMasterKey() // Requires Auth
                 
                 val id = UUID.randomUUID().toString()
-                // Format: "username|password"
-                val payload = "$username|$secret" 
+                // Format: "title|username|password"
+                val payload = "$title|$username|$secret" 
                 val encryptResult = securityManager.encrypt(payload.toByteArray(java.nio.charset.StandardCharsets.UTF_8), masterKey)
                 val ivBytes = encryptResult.first
                 val encryptedBytes = encryptResult.second

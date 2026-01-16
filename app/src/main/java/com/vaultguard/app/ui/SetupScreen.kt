@@ -241,7 +241,9 @@ fun SetupForm(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Set New Master Password") },
+            label = { 
+                Text(if (isRestore) "Enter Original Master Password" else "Set New Master Password") 
+            },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
@@ -268,7 +270,7 @@ fun SetupForm(
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Master Password") },
+            label = { Text(if (isRestore) "Confirm Master Password" else "Re-enter to Confirm") },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             colors = OutlinedTextFieldDefaults.colors(
