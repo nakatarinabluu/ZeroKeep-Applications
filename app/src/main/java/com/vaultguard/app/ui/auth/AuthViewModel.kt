@@ -27,7 +27,8 @@ class AuthViewModel @Inject constructor(
 
     fun attemptUnlock(password: String) {
         // Default to "password123" only if not set (backward compatibility)
-        val validPassword = prefs.getString("master_password", "password123") ?: "password123"
+        // Default to "password123" only if not set (backward compatibility)
+        val validPassword = prefs.getString("master_password", null) ?: return // Fail safely if no password set
         val duressPassword = prefs.getString("duress_password", null)
 
         if (password == validPassword) {

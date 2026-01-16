@@ -43,11 +43,22 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideHmacInterceptor(): HmacInterceptor {
+    fun provideHmacInterceptor(@ApplicationContext context: Context): HmacInterceptor {
+        val prefs = context.getSharedPreferences("vault_prefs", Context.MODE_PRIVATE)
+        val savedId = prefs.getString("device_id", null)
+        
+        val deviceId = if (savedId != null) {
+            savedId
+        } else {
+            val newId = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString("device_id", newId).apply()
+            newId
+        }
+
         // Decrypt secrets securely via JNI at runtime
         val apiKey = getApiKey()
         val hmacSecret = getHmacSecret()
-        val deviceId = java.util.UUID.randomUUID().toString() 
+        
         return HmacInterceptor(apiKey, hmacSecret, deviceId)
     }
 
