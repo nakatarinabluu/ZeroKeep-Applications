@@ -63,7 +63,7 @@ class SecretViewModel @Inject constructor(
                             val decryptedString = String(decryptedBytes, java.nio.charset.StandardCharsets.UTF_8)
                             
                             // Parse "title|username|password" format (New) OR "username|password" (Old)
-                            val parts = decryptedString.split("|", limit = 3)
+                            val parts = decryptedString.split('|', limit = 3)
                             
                             val title: String
                             val username: String
