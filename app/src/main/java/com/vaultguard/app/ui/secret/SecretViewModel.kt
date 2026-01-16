@@ -134,6 +134,8 @@ class SecretViewModel @Inject constructor(
                 _saveState.value = result
                 // Refresh list
                 if (result.isSuccess) loadSecrets()
+            } catch (e: Exception) {
+                android.util.Log.e("SecretViewModel", "Error saving secret", e)
                 _saveState.value = Result.failure(e)
             }
         }
