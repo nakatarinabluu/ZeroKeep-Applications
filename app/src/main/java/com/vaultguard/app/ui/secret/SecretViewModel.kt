@@ -134,12 +134,27 @@ class SecretViewModel @Inject constructor(
                 _saveState.value = result
                 // Refresh list
                 if (result.isSuccess) loadSecrets()
-            } catch (e: Exception) {
-                android.util.Log.e("SecretViewModel", "Error saving secret", e)
                 _saveState.value = Result.failure(e)
             }
         }
     }
+
+    fun deleteSecret(id: String) {
+        viewModelScope.launch {
+            try {
+                // Optimistic update or waiting? Let's wait.
+                val result = repository.deleteSecret(id)
+                if (result.isSuccess) {
+                    loadSecrets() // Refresh list
+                } else {
+                     android.util.Log.e("SecretViewModel", "Delete failed")
+                }
+            } catch (e: Exception) {
+                 android.util.Log.e("SecretViewModel", "Delete error", e)
+            }
+        }
+    }
+
     fun clearSensitiveData() {
         _secrets.value = emptyList()
         _saveState.value = null

@@ -334,23 +334,26 @@ fun SetupForm(
 
         Spacer(modifier = Modifier.height(16.dp))
         
-        // CONFIRM PASSWORD
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text(if (isRestore) "Confirm Master Password" else "Re-enter to Confirm") },
-            singleLine = true,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
+        // CONFIRM PASSWORD (Only for New Vault)
+        if (!isRestore) {
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Re-enter to Confirm") },
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+        } else {
+             Spacer(modifier = Modifier.height(24.dp))
+        }
 
         Button(
             onClick = {
@@ -358,7 +361,7 @@ fun SetupForm(
                      displayError = "Please enter exactly 12 words."
                 } else if (password.length < 6) {
                     displayError = "Password must be at least 6 characters"
-                } else if (password != confirmPassword) {
+                } else if (!isRestore && password != confirmPassword) {
                     displayError = "Passwords do not match!"
                 } else {
                     // Start Verification Flow

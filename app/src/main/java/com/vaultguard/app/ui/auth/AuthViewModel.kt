@@ -75,12 +75,22 @@ class AuthViewModel @Inject constructor(
         
         // 2. Clear App Preferences (Auth, Flags, etc.)
         prefs.edit().clear().apply()
+        
+        // 3. Prevent Auto-Prompt on return to Auth Screen
+        shouldAutoPromptBiometrics = false
             
         resetState()
     }
 
     val isBiometricEnabled: Boolean
         get() = prefs.getBoolean("biometrics_enabled", false)
+        
+    // Prevent auto-prompt loop on Logout
+    var shouldAutoPromptBiometrics = true 
+    
+    fun disableAutoPrompt() {
+        shouldAutoPromptBiometrics = false
+    }
 }
 
 sealed class AuthState {

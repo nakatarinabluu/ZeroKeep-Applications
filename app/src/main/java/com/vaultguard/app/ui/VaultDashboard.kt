@@ -229,7 +229,11 @@ fun VaultDashboard(
                     .padding(padding)
             ) {
                 items(secrets.size) { index ->
-                    SecretItem(item = secrets[index], clipboardManager = customClipboardManager)
+                    SecretItem(
+                        item = secrets[index], 
+                        clipboardManager = customClipboardManager,
+                        onDelete = { id -> viewModel.deleteSecret(id) }
+                    )
                 }
             }
         }
@@ -237,10 +241,15 @@ fun VaultDashboard(
 }
  
 @Composable
-fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.ClipboardManager) {
+fun SecretItem(
+    item: SecretUiModel, 
+    clipboardManager: com.vaultguard.app.utils.ClipboardManager,
+    onDelete: (String) -> Unit
+) {
     var revealed by remember { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     var ticks by remember { mutableIntStateOf(30) } // Countdown timer
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     
     val scale by animateFloatAsState(
         targetValue = if (revealed) 0.98f else 1f,
@@ -256,10 +265,6 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
         DisposableEffect(Unit) {
             onDispose {
                 revealed = false
-                // Note: We can't check clipboard content easily with custom manager wrapper without getter, 
-                // but we rely on the 45s auto clear in Manager or Manual clear.
-                // Or implementing a check if needed. For now, strict clear on Dispose is safer?
-                // Or just let the Manager handle auto-clear.
             }
         }
         
@@ -272,6 +277,30 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
             revealed = false
             System.gc()
         }
+    }
+    
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete Secret?") },
+            text = { Text("Are you sure you want to delete '${item.title}'?", color = MaterialTheme.colorScheme.onSurface) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete(item.id)
+                        showDeleteConfirm = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 
     Card(
@@ -287,23 +316,41 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Row 1: Title and Username
-            Column {
-                Text(
-                    text = item.title, 
-                    color = MaterialTheme.colorScheme.onSurface, 
-                    style = MaterialTheme.typography.titleMedium, 
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-                )
-                if (item.username.isNotEmpty()) {
+            // Row 1: Header (Title, Username, Delete)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = item.username,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = item.title, 
+                        color = MaterialTheme.colorScheme.onSurface, 
+                        style = MaterialTheme.typography.titleMedium, 
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    )
+                    // Username ALWAYS VISIBLE as requested
+                    if (item.username.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = item.username,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                
+                IconButton(onClick = { showDeleteConfirm = true }) {
+                     Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
                     )
                 }
             }
             
+            Spacer(modifier = Modifier.height(12.dp))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f))
             Spacer(modifier = Modifier.height(12.dp))
             
             // Row 2: Password (Hidden/Revealed) + Copy + Timer
@@ -312,13 +359,19 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                androidx.compose.animation.Crossfade(targetState = revealed, label = "PasswordReveal") { isRevealed ->
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (isRevealed) item.password else "••••••••••••",
-                        color = if (isRevealed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.5f), 
-                        style = if (isRevealed) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f, fill = false)
+                        text = "Password",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
+                    androidx.compose.animation.Crossfade(targetState = revealed, label = "PasswordReveal") { isRevealed ->
+                        Text(
+                            text = if (isRevealed) item.password else "••••••••••••",
+                            color = if (isRevealed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha=0.5f), 
+                            style = if (isRevealed) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleLarge,
+                        )
+                    }
                 }
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -331,7 +384,6 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
                         )
                         IconButton(onClick = {
                             clipboardManager.copyToClipboard("Secret", item.password)
-                            // Optional: Show toast?
                         }) {
                             Icon(
                                 imageVector = androidx.compose.material.icons.Icons.Default.ContentCopy,
@@ -339,6 +391,10 @@ fun SecretItem(item: SecretUiModel, clipboardManager: com.vaultguard.app.utils.C
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
+                    } else {
+                        // Show "Click to Reveal" hint icon or similar?
+                        // For now just empty or verify if user wants anything.
+                        // User said: "hidden word should only show password"
                     }
                 }
             }

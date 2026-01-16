@@ -77,9 +77,9 @@ fun AuthScreen(
         }
     }
     
-    // Trigger Biometrics ONCE on start (IF ENABLED)
+    // Trigger Biometrics ONCE on start (IF ENABLED and NOT skipped)
     LaunchedEffect(Unit) {
-        if (viewModel.isBiometricEnabled) {
+        if (viewModel.isBiometricEnabled && viewModel.shouldAutoPromptBiometrics) {
             triggerBiometrics()
         }
     }
