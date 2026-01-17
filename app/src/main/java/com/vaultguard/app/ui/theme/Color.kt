@@ -2,17 +2,20 @@ package com.vaultguard.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Obsidian Palette
-val ObsidianBlack = Color(0xFF000000)
-val ObsidianDarkGray = Color(0xFF121212)
-val ObsidianSurface = Color(0xFF1E1E1E) // Slightly lighter for cards
-val ObsidianNavy = Color(0xFF102027) // The "Strong" background user liked
+// Azure Professional Palette (Deep Navy)
 
-// Accents
-val ElectricBlue = Color(0xFF2979FF)
-val NeonCyan = Color(0xFF00E5FF)
-val DangerRed = Color(0xFFD50000)
+// Backgrounds
+val DeepNavyBackground = Color(0xFF0A1929) // Very dark blue, almost black but warmer
+val DeepNavySurface = Color(0xFF132F4C)    // Lighter navy for cards/headers
+
+// Brand Colors (Matches Icon)
+val RoyalBlue = Color(0xFF1565C0)         // Primary Brand Color (Trust)
+val KeyholeCyan = Color(0xFF29B6F6)       // Secondary Accent (Action)
+val SuccessGreen = Color(0xFF66BB6A)      // Subtle green for success
+
+// Functional
+val DangerRed = Color(0xFFEF5350)         // Softer red, not neon
 
 // Text
 val TextWhite = Color(0xFFFFFFFF)
-val TextGray = Color(0xFFB0BEC5)
+val TextGray = Color(0xFFB0BEC5)          // Blue-ish gray text

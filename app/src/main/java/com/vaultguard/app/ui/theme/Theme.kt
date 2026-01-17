@@ -17,11 +17,11 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ElectricBlue,
-    secondary = NeonCyan,
+    primary = RoyalBlue,
+    secondary = KeyholeCyan,
     tertiary = TextGray,
-    background = ObsidianNavy,
-    surface = ObsidianSurface,
+    background = DeepNavyBackground,
+    surface = DeepNavySurface,
     onPrimary = Color.White,
     onSecondary = Color.Black,
     onBackground = TextWhite,
@@ -32,8 +32,8 @@ private val DarkColorScheme = darkColorScheme(
 // We want to force Dark Theme or at least make Light Theme look similar (Strong)
 // But for now, let's define a "Light" that is just slightly lighter version of Strong matches
 private val LightColorScheme = lightColorScheme(
-    primary = ElectricBlue,
-    secondary = NeonCyan,
+    primary = RoyalBlue,
+    secondary = KeyholeCyan,
     tertiary = TextGray,
     background = Color(0xFFF5F5F7), // Keep the "Swiss" light for contrast if system is light?
     // User asked for "Simple but Strong" - usually means Dark Mode. 
