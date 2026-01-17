@@ -36,6 +36,8 @@ class HmacInterceptor(
         val payload = "$apiKey$timestamp$userAgent$deviceId$bodyString"
         val signature = calculateHmac(payload, hmacSecret)
 
+        android.util.Log.d("SecurityManager", "HMAC Debug: TS=$timestamp, UA=$userAgent, Payload=$payload, Sig=$signature")
+
         val requestBuilder = original.newBuilder()
             .header("X-API-KEY", apiKey)
             .header("X-Timestamp", timestamp)
