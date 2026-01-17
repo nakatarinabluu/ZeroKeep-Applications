@@ -40,7 +40,9 @@ class SecretRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body() ?: emptyList())
             } else {
-                Result.failure(IOException("Error: ${response.code()}"))
+                val errorBody = response.errorBody()?.string()
+                android.util.Log.e("SecretRepo", "Fetch failed: ${response.code()} Body: $errorBody")
+                Result.failure(IOException("Error: ${response.code()} $errorBody"))
             }
         } catch (e: Exception) {
             Result.failure(e)

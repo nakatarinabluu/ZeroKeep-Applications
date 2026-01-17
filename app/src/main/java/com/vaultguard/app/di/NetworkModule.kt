@@ -74,7 +74,6 @@ object NetworkModule {
         }
 
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
                 val original = chain.request()
                 // Masquerade as standard browser for traffic obfuscation
@@ -84,6 +83,7 @@ object NetworkModule {
                 chain.proceed(request)
             }
             .addInterceptor(hmacInterceptor)
+            .addNetworkInterceptor(loggingInterceptor) // Log FINAL request (with headers)
             // Strict timeouts to mitigate Slowloris / hanging connections
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
