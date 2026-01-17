@@ -178,19 +178,27 @@ class SecretViewModel @Inject constructor(
         // DANGER: Deletes Key + Encrypted Data
         viewModelScope.launch {
             try {
-                // Delete KeyStore Entry
+                // 1. Wipe Cloud Data First
+                val result = repository.wipeVault(token)
+                if (result.isFailure) {
+                    android.util.Log.e("SecretViewModel", "Server Wipe Failed", result.exceptionOrNull())
+                    // Continue to local wipe anyway? Yes, user wants destruction.
+                }
+
+                // 2. Delete KeyStore Entry
                 securityManager.deleteKey()
                 
-                // Clear Preferences (Token, Biometrics)
+                // 3. Clear Preferences (Token, Biometrics)
                 setBiometricEnabled(false)
                 
-                // Note: Clearing App Data via Code is tricky on Android (requires root or specific System APIs).
-                // Best we can do is clear our DB/Prefs/Keys.
-                
-                // Kill process to ensure RAM dump
-                // System.exit(0) handled by caller/signout?
+                // 4. Clear In-Memory Data
+                _secrets.value = emptyList()
+
+                // Note: Clearing App Data via Code is tricky on Android.
             } catch (e: Exception) {
-                // Log but ensure we try to delete key
+                android.util.Log.e("SecretViewModel", "Wipe Error", e)
+                // Ensure we try to delete key last resort
+                securityManager.deleteKey()
             }
         }
     }

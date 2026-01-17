@@ -134,58 +134,12 @@ fun VaultDashboard(
                         Text("Sign Out", color = Color.Red)
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(text = "DANGER ZONE", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
-                    Divider(color = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    var showPanicConfirm by remember { mutableStateOf(false) }
-                    var panicToken by remember { mutableStateOf("") }
-
-                    Button(
-                        onClick = { showPanicConfirm = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextButton(
+                        onClick = { onSignOut() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("⚠️ WIPE VAULT", color = MaterialTheme.colorScheme.onError, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                    }
-
-                    if (showPanicConfirm) {
-                        AlertDialog(
-                            onDismissRequest = { showPanicConfirm = false },
-                            title = { Text("CONFIRM DESTRUCTION") },
-                            text = {
-                                Column {
-                                    Text("This will permanently delete ALL data on the server and this device. This cannot be undone.", color = MaterialTheme.colorScheme.error)
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = panicToken,
-                                        onValueChange = { panicToken = it },
-                                        label = { Text("Enter Wipe Token") },
-                                        singleLine = true
-                                    )
-                                }
-                            },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        viewModel.wipeVault(panicToken)
-                                        showPanicConfirm = false
-                                        showSettings = false
-                                        onSignOut() // Exit app
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                                ) {
-                                    Text("DESTROY EVERYTHING", color = MaterialTheme.colorScheme.onError)
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showPanicConfirm = false }) {
-                                    Text("Cancel")
-                                }
-                            },
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
+                        Text("Sign Out", color = Color.Red)
                     }
                 }
             },
