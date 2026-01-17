@@ -47,9 +47,11 @@ class SecretRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteSecret(id: String): Result<Unit> {
+    override suspend fun deleteSecret(id: String, ownerHash: String): Result<Unit> {
         return try {
-            val response = api.deleteSecret(id)
+            val response = api.deleteSecret(
+                com.vaultguard.app.data.remote.dto.DeleteSecretRequest(id, ownerHash)
+            )
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {

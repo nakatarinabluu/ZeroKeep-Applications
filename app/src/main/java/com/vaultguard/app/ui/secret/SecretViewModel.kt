@@ -145,7 +145,11 @@ class SecretViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Optimistic update or waiting? Let's wait.
-                val result = repository.deleteSecret(id)
+                val appOwnerUsername = "default_user"
+                val ownerHash = sha256(appOwnerUsername)
+                
+                val result = repository.deleteSecret(id, ownerHash) // Requires ownerHash
+                
                 if (result.isSuccess) {
                     loadSecrets() // Refresh list
                 } else {

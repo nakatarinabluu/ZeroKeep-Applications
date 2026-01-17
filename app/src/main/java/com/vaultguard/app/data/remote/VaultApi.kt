@@ -17,7 +17,7 @@ interface VaultApi {
     suspend fun fetchSecrets(@Header("x-owner-hash") ownerHash: String): Response<List<SecretResponse>>
 
     @POST("/api/v1/vault/delete")
-    suspend fun deleteSecret(@Body id: String): Response<Unit> // Need DTO for ID wrapper if API expects object
+    suspend fun deleteSecret(@Body request: com.vaultguard.app.data.remote.dto.DeleteSecretRequest): Response<Unit>
 
     @POST("/api/v1/vault/wipe")
     suspend fun wipeVault(@Header("x-wipe-token") wipeToken: String): Response<Unit>
