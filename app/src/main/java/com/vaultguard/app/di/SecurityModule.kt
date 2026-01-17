@@ -20,6 +20,16 @@ object SecurityModule {
             .setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM)
             .build()
 
+        return try {
+            createEncryptedPrefs(context, masterKey)
+        } catch (e: Exception) {
+            // CRASH FIX: If KeyStore is corrupted (e.g. reinstall), delete prefs and recreate
+            context.deleteSharedPreferences("vault_guard_encrypted_prefs")
+            createEncryptedPrefs(context, masterKey)
+        }
+    }
+
+    private fun createEncryptedPrefs(context: Context, masterKey: androidx.security.crypto.MasterKey): android.content.SharedPreferences {
         return androidx.security.crypto.EncryptedSharedPreferences.create(
             context,
             "vault_guard_encrypted_prefs",
