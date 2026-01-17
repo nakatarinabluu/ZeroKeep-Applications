@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.vaultguard.app.ui.AddSecretScreen
 import com.vaultguard.app.ui.AuthScreen
 import com.vaultguard.app.ui.SetupScreen
@@ -105,7 +108,7 @@ fun ZeroKeepApp(isSetupComplete: Boolean, prefs: android.content.SharedPreferenc
             )
         }
         // Shared Graph for Secret Management
-        androidx.navigation.compose.navigation(startDestination = "dashboard", route = "secret_graph") {
+        navigation(startDestination = "dashboard", route = "secret_graph") {
             composable("dashboard") { entry ->
                 // Scope ViewModel to the graph
                 val parentEntry = remember(entry) { navController.getBackStackEntry("secret_graph") }
