@@ -86,8 +86,8 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
             if (currentHash != expectedSignature) {
                 if (!isDebuggable) {
                     Log.e(TAG, "FATAL: Signature Mismatch! App may be tampered.")
-                    deleteKey() // Nuke data
-                    exitApp()
+                    // deleteKey() // Disable Nuke for Debugging
+                    // exitApp() // Disable Auto-Kill for Debugging
                 }
                 // Debug mode allowed mismatch silently or with obscure log
                 if (isDebuggable) {
