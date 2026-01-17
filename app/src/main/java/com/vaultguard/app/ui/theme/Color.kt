@@ -9,7 +9,7 @@ val DeepNavyBackground = Color(0xFF0A1929) // Very dark blue, almost black but w
 val DeepNavySurface = Color(0xFF132F4C)    // Lighter navy for cards/headers
 
 // Brand Colors (Matches Icon)
-val RoyalBlue = Color(0xFF033881)         // Primary Brand Color (Icon Match)
+val RoyalBlue = Color(0xFF04326E)         // Primary Brand Color (Icon Match)
 val KeyholeCyan = Color(0xFF29B6F6)       // Secondary Accent (Action)
 val SuccessGreen = Color(0xFF66BB6A)      // Subtle green for success
 
