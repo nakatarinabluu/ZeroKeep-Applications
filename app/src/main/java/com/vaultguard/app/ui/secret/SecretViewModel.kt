@@ -93,6 +93,9 @@ class SecretViewModel @Inject constructor(
                                 username = username,
                                 password = password
                             )
+                            .also {
+                                android.util.Log.d("SecretViewModel", "Decryption success for: ${it.title} (${it.id})")
+                            }
                         } catch (e: Exception) {
                             android.util.Log.e("SecretViewModel", "Decryption failed for ${secret.id}", e)
                             null
