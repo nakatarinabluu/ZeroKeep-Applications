@@ -62,20 +62,15 @@ class MainActivity : FragmentActivity() {
 fun ZeroKeepApp(isSetupComplete: Boolean, prefs: android.content.SharedPreferences) {
     val navController = rememberNavController()
 
+    val startDestination = if (isSetupComplete) "auth" else "setup"
+    
     NavHost(
         navController = navController, 
-        startDestination = "splash",
+        startDestination = startDestination,
         enterTransition = { androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInHorizontally() },
         exitTransition = { androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutHorizontally() }
     ) {
-        composable("splash") {
-            com.vaultguard.app.ui.SplashScreen(onSplashFinished = {
-                val next = if (isSetupComplete) "auth" else "setup"
-                navController.navigate(next) {
-                    popUpTo("splash") { inclusive = true }
-                }
-            })
-        }
+        // Splash route removed to prevent "Triple Opening" glitch
         composable("setup") {
 
             SetupScreen(onSetupComplete = { password ->
