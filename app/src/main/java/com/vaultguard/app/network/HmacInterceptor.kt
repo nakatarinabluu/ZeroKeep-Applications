@@ -29,15 +29,17 @@ class HmacInterceptor(
         val bodyString = bodyToString(original)
 
         // 2. Calculate Signature
+        // 3. Build New Request
+        val userAgent = original.header("User-Agent") ?: USER_AGENT
+        
         // Formula: HMAC-SHA256(APP_API_KEY + X-Timestamp + User-Agent + X-Device-ID + RequestBody)
-        val payload = "$apiKey$timestamp$USER_AGENT$deviceId$bodyString"
+        val payload = "$apiKey$timestamp$userAgent$deviceId$bodyString"
         val signature = calculateHmac(payload, hmacSecret)
 
-        // 3. Build New Request
         val requestBuilder = original.newBuilder()
             .header("X-API-KEY", apiKey)
             .header("X-Timestamp", timestamp)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", userAgent)
             .header("X-Device-ID", deviceId)
             .header("X-Signature", signature)
             .header("Content-Type", "application/json")

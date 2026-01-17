@@ -13,6 +13,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+import okhttp3.logging.HttpLoggingInterceptor
+import com.vaultguard.app.BuildConfig
 
 
 /**
@@ -67,7 +69,12 @@ object NetworkModule {
     fun provideOkHttpClient(
         hmacInterceptor: HmacInterceptor
     ): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+        }
+
         return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
                 val original = chain.request()
                 // Masquerade as standard browser for traffic obfuscation
