@@ -67,7 +67,7 @@ class KdfGenerator @Inject constructor() {
     fun verifyPassword(password: String, encodedHash: String): Boolean {
         return argon2.verify(
             mode = Argon2Mode.ARGON2_ID,
-            encodedHash = encodedHash,
+            encoded = encodedHash,
             password = password.toByteArray(Charsets.UTF_8)
         )
     }
