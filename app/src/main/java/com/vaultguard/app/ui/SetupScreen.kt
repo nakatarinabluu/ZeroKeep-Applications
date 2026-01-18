@@ -98,9 +98,9 @@ fun WelcomeContent(onNewWallet: () -> Unit, onRestoreWallet: () -> Unit) {
                     scaleY = logoScale,
                     alpha = logoAlpha
                 )
-                .shadow(elevation = 16.dp, shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp), spotColor = MaterialTheme.colorScheme.primary)
-                .background(MaterialTheme.colorScheme.surface, shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp))
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(32.dp)),
+                .shadow(elevation = 16.dp, shape = androidx.compose.foundation.shape.CircleShape, spotColor = MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.surface, shape = androidx.compose.foundation.shape.CircleShape)
+                .clip(androidx.compose.foundation.shape.CircleShape),
             contentAlignment = Alignment.Center
         ) {
              Icon(
@@ -151,9 +151,9 @@ fun WelcomeContent(onNewWallet: () -> Unit, onRestoreWallet: () -> Unit) {
 
             OutlinedButton(
                 onClick = onRestoreWallet,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
                 Text("I have a Recovery Phrase", fontSize = 16.sp)
@@ -257,9 +257,9 @@ fun SetupForm(
         // Show Regenerate Button if Creating Wallet
         if (!isRestore && mnemonic != null) {
             TextButton(onClick = onRegenerateMnemonic) {
-                Icon(Icons.Default.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Generate New Phrase", color = MaterialTheme.colorScheme.primary)
+                Text("Generate New Phrase", color = MaterialTheme.colorScheme.secondary)
             }
         } else if (isRestore) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -274,7 +274,7 @@ fun SetupForm(
                     mnemonic.chunked(3).forEach { rowWords ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                             rowWords.forEach { word ->
-                                Text(text = word, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(4.dp))
+                                Text(text = word, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(4.dp))
                             }
                         }
                     }
