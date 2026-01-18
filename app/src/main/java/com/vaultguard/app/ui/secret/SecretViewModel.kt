@@ -37,9 +37,13 @@ class SecretViewModel @Inject constructor(
 
     fun loadSecrets() {
         viewModelScope.launch {
-            // "default_user" matches AddSecretScreen. In real app, get from User Session.
-            val username = "default_user" 
-            val ownerHash = sha256(username)
+            // Dynamic Vault Identity
+            val ownerHash = prefs.getString("vault_id", null) ?: run {
+                // Fallback for legacy "default_user" or just fail?
+                // For migration: Check if "vault_id" missing, maybe use sha256("default_user")?
+                // Better: sha256("default_user") so existing installs don't break immediately.
+                sha256("default_user") 
+            }
             
             try {
                 // LOAD MASTER KEY (Requires Auth)
@@ -131,10 +135,8 @@ class SecretViewModel @Inject constructor(
                 val iv = ivBytes.joinToString("") { "%02x".format(it) }
                 val encryptedBlob = encryptedBytes.joinToString("") { "%02x".format(it) }
                 
-                // FIX: ownerHash must be consistent for the App User, NOT the secret's username.
-                // Since we don't have multi-user login yet, we use the same "default_user" as loadSecrets.
-                val appOwnerUsername = "default_user" 
-                val ownerHash = sha256(appOwnerUsername)
+                // FIX: ownerHash must be consistent for the App User
+                val ownerHash = prefs.getString("vault_id", null) ?: sha256("default_user")
                 val titleHash = sha256(title)
 
                 val result = repository.saveSecret(id, ownerHash, titleHash, encryptedBlob, iv)
@@ -152,8 +154,7 @@ class SecretViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Optimistic update or waiting? Let's wait.
-                val appOwnerUsername = "default_user"
-                val ownerHash = sha256(appOwnerUsername)
+                val ownerHash = prefs.getString("vault_id", "default_vault")!!
                 
                 val result = repository.deleteSecret(id, ownerHash) // Requires ownerHash
                 

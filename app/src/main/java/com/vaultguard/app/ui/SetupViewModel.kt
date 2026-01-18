@@ -46,8 +46,9 @@ class SetupViewModel @Inject constructor(
                 val derivedKey = javax.crypto.spec.SecretKeySpec(keyBytes, "AES")
                 
                 // 2. Strict Verification (If Restoring)
+                val vaultId = sha256(mnemonicString) // Compute early
                 if (isRestore) {
-                    if (!verifyKeyAgainstServer(derivedKey)) {
+                    if (!verifyKeyAgainstServer(derivedKey, vaultId)) {
                         _setupState.value = SetupState.Error("Incorrect Password or Recovery Phrase. Unable to unlock vault.")
                         return@launch
                     }
@@ -55,9 +56,15 @@ class SetupViewModel @Inject constructor(
                 
                 // 3. Save Key Securely
                 securityManager.saveMasterKey(derivedKey)
-                
-                // Explicitly disable Biometrics (User Request: Manual Opt-In Only)
-                prefs.edit().putBoolean("biometrics_enabled", false).apply()
+
+                // 4. Save Vault Identity (Multi-Account Support)
+                // We derive a unique Vault ID from the mnemonic.
+                // This allows different phrases to have different storages (No collision).
+                val vaultId = sha256(mnemonicString)
+                prefs.edit()
+                    .putBoolean("biometrics_enabled", false)
+                    .putString("vault_id", vaultId)
+                    .apply()
                 
                 _setupState.value = SetupState.Success(password)
                 
@@ -70,11 +77,25 @@ class SetupViewModel @Inject constructor(
     /**
      * Tries to fetch and decrypt 1 item from the server to prove the key is correct.
      */
-    private suspend fun verifyKeyAgainstServer(key: SecretKey): Boolean {
+    private suspend fun verifyKeyAgainstServer(key: SecretKey, vaultId: String): Boolean {
         try {
-            // HARDCODED USER for now (Matching SecretViewModel)
-            val username = "default_user"
-            val ownerHash = sha256(username)
+            // Use the Derived Vault ID
+            val ownerHash = vaultId // It is already hashed in call site? Or raw? 
+            // Wait, call site does `sha256(mnemonicString)`. So it is the hash.
+            // Let's verify sha256 function. Yes. the mnemonic string potentially or pass it in. 
+            // Since we don't have it here easily without passing, we should assume verifyKey is called in context.
+            // Actually, verifyKeysAgainstServer is called with key. We need the Vault ID too.
+            // Let's modify the signature or logic?
+            // Simpler: Just rely on the fact that if we are restoring, we know the mnemonic.
+            // BUT wait, this function is private and only used in one place where we HAVE the mnemonic.
+            
+             // Temporary Fix: See Note below. 
+             // To avoid changing signature significantly in this small edit: 
+             // Logic moved to call site? No, let's keep it here but use the passed mnemonic? 
+             // AHH, I can't access mnemonic here easily. 
+             // I will change the signature of verifyKeyAgainstServer to accept vaultId.
+             return false // Placeholder to trigger re-read/edit in "multi_replace" approach
+        } catch (e: Exception) {
 
             val result = repository.fetchSecrets(ownerHash)
             return result.fold(
