@@ -324,7 +324,7 @@ fun SecretItem(
                     androidx.compose.animation.Crossfade(targetState = revealed, label = "PasswordReveal") { isRevealed ->
                         Text(
                             text = if (isRevealed) item.password else "••••••••••••",
-                            color = if (isRevealed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha=0.5f), 
+                            color = if (isRevealed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface.copy(alpha=0.5f), 
                             style = if (isRevealed) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleLarge,
                         )
                     }
@@ -344,7 +344,7 @@ fun SecretItem(
                             Icon(
                                 imageVector = androidx.compose.material.icons.Icons.Default.ContentCopy,
                                 contentDescription = "Copy Password",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.secondary
                             )
                         }
                     } else {
