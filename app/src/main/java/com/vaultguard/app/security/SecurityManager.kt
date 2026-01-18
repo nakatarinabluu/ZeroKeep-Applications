@@ -81,17 +81,16 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
             val currentHash = getComputedSignatureHash()
             val expectedSignature = getAppSignature() // From JNI
 
-            val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+import com.vaultguard.app.BuildConfig
 
+// ... inside verifyAppSignature
             if (currentHash != expectedSignature) {
-                if (!isDebuggable) {
+                if (!BuildConfig.DEBUG) {
                     Log.e(TAG, "FATAL: Signature Mismatch! App may be tampered.")
-                    // deleteKey() // Disable Nuke for Debugging
-                    // exitApp() // Disable Auto-Kill for Debugging
-                }
-                // Debug mode allowed mismatch silently or with obscure log
-                if (isDebuggable) {
-                     // No-op or minimal log
+                    deleteKey() // Nuke data
+                    exitApp()
+                } else {
+                    Log.w(TAG, "Signature Mismatch detected but ignored in DEBUG mode.")
                 }
             }
         } catch (e: Exception) {
