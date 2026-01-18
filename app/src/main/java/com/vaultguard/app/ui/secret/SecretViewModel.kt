@@ -57,6 +57,22 @@ class SecretViewModel @Inject constructor(
                 
                 val result = repository.fetchSecrets(ownerHash)
                 result.onSuccess { responseList ->
+                    // Auto-Migration: If current vault is empty, check legacy "default_user" vault
+                    if (responseList.isEmpty()) {
+                        val legacyHash = sha256("default_user")
+                        // Only check if we are NOT already in the legacy vault
+                        if (ownerHash != legacyHash) {
+                             val legacyResult = repository.fetchSecrets(legacyHash)
+                             legacyResult.onSuccess { legacyList ->
+                                 if (legacyList.isNotEmpty()) {
+                                     android.util.Log.i("SecretViewModel", "Found ${legacyList.size} legacy items. Attempting migration...")
+                                     migrateLegacyData(legacyList, masterKey, ownerHash)
+                                     return@onSuccess // migrateLegacyData will reload
+                                 }
+                             }
+                        }
+                    }
+
                     val decryptedList = responseList.mapNotNull { secret ->
                         try {
                             val iv = hexStringToByteArray(secret.iv)
@@ -220,6 +236,43 @@ class SecretViewModel @Inject constructor(
             i += 2
         }
         return data
+    }
+}
+
+    private fun migrateLegacyData(legacyList: List<com.vaultguard.app.domain.model.Secret>, masterKey: javax.crypto.SecretKey, newOwnerHash: String) {
+        viewModelScope.launch {
+            var migratedCount = 0
+            legacyList.forEach { secret ->
+                try {
+                    val iv = hexStringToByteArray(secret.iv)
+                    val encrypted = hexStringToByteArray(secret.encryptedBlob)
+                    
+                    // 1. Try Decrypt
+                    val decryptedBytes = securityManager.decrypt(iv, encrypted, masterKey)
+                    
+                    // 2. If successful, Re-Encrypt for New Vault
+                    // We can just re-save the SAME payload (iv/blob) if we trust it, 
+                    // BUT the server might enforce owner ownership on specific IDs?
+                    // Usually safer to create NEW ID or just re-save with new OwnerHash.
+                    // Let's re-save with SAME ID but NEW OwnerHash.
+                    
+                    // BUT wait, Repository.saveSecret takes ID.
+                    // The server handles UPSERT.
+                    // We should probably keep the ID to avoid duplicates if migration runs partial?
+                    // Or keep it simple.
+                    
+                    val result = repository.saveSecret(secret.id, newOwnerHash, secret.titleHash, secret.encryptedBlob, secret.iv)
+                    if (result.isSuccess) migratedCount++
+                    
+                } catch (e: Exception) {
+                    // Decryption failed = Key doesn't match = Not this user's data. Ignore.
+                }
+            }
+            if (migratedCount > 0) {
+                android.util.Log.i("SecretViewModel", "Migrated $migratedCount secrets successfully.")
+                loadSecrets() // Reload to show migrated data
+            }
+        }
     }
 }
 
