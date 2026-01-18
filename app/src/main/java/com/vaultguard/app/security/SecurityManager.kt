@@ -239,20 +239,29 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
         try {
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
             keyStore.load(null)
+            
+            // Self-Healing: If key is missing or invalid, regenerate
+            if (!keyStore.containsAlias(WRAP_KEY_ALIAS)) {
+                generateWrappingKeyIfNotExists()
+            }
+            
             val wrappingKey = keyStore.getKey(WRAP_KEY_ALIAS, null) as SecretKey
 
+            // Use ENCRYPT_MODE instead of WRAP_MODE for better GCM compatibility
             val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.WRAP_MODE, wrappingKey)
+            cipher.init(Cipher.ENCRYPT_MODE, wrappingKey)
             
-            val wrappedKeyBytes = cipher.wrap(secretKey)
+            val encryptedBytes = cipher.doFinal(secretKey.encoded)
             val iv = cipher.iv
 
             prefs.edit()
-                .putString(KEY_WRAPPED_BLOB, Base64.encodeToString(wrappedKeyBytes, Base64.NO_WRAP))
+                .putString(KEY_WRAPPED_BLOB, Base64.encodeToString(encryptedBytes, Base64.NO_WRAP))
                 .putString(KEY_WRAPPED_IV, Base64.encodeToString(iv, Base64.NO_WRAP))
                 .apply()
         } catch (e: Exception) {
-            throw SecurityException("Failed to save master key", e)
+            // Log full trace for debugging capabilities
+            Log.e(TAG, "Save Master Key Error", e)
+            throw SecurityException("Failed to save master key: ${e.message}", e)
         }
     }
 
@@ -265,18 +274,20 @@ class SecurityManager(private val context: Context, private val prefs: SharedPre
             val wrappedBlobStr = prefs.getString(KEY_WRAPPED_BLOB, null) ?: throw SecurityException("No Master Key Found")
             val ivStr = prefs.getString(KEY_WRAPPED_IV, null) ?: throw SecurityException("No Master Key IV Found")
 
-            val wrappedKeyBytes = Base64.decode(wrappedBlobStr, Base64.NO_WRAP)
+            val encryptedBytes = Base64.decode(wrappedBlobStr, Base64.NO_WRAP)
             val iv = Base64.decode(ivStr, Base64.NO_WRAP)
 
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
             keyStore.load(null)
             val wrappingKey = keyStore.getKey(WRAP_KEY_ALIAS, null) as SecretKey
 
+            // Use DECRYPT_MODE instead of UNWRAP_MODE
             val cipher = Cipher.getInstance(TRANSFORMATION)
             val spec = GCMParameterSpec(128, iv)
-            cipher.init(Cipher.UNWRAP_MODE, wrappingKey, spec)
+            cipher.init(Cipher.DECRYPT_MODE, wrappingKey, spec)
 
-            return cipher.unwrap(wrappedKeyBytes, "AES", Cipher.SECRET_KEY) as SecretKey
+            val keyBytes = cipher.doFinal(encryptedBytes)
+            return javax.crypto.spec.SecretKeySpec(keyBytes, "AES")
         } catch (e: Exception) {
             throw SecurityException("Failed to load master key", e)
         }
