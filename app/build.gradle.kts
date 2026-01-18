@@ -5,6 +5,9 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
 android {
     namespace = "com.vaultguard.app"
     compileSdk = 34
@@ -33,8 +36,8 @@ android {
         create("release") {
             val keystorePropertiesFile = rootProject.file("keystore.properties")
             if (keystorePropertiesFile.exists()) {
-                val keystoreProperties = java.util.Properties()
-                keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+                val keystoreProperties = Properties()
+                keystoreProperties.load(FileInputStream(keystorePropertiesFile))
                 
                 storeFile = file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
