@@ -217,6 +217,10 @@ object MnemonicUtils {
         return List(12) { WORD_LIST[secureRandom.nextInt(WORD_LIST.size)] }
     }
 
+    fun isValidWord(word: String): Boolean {
+        return WORD_LIST.contains(word.trim().lowercase())
+    }
+
     fun deriveKey(mnemonic: List<String>, passphrase: String = ""): javax.crypto.SecretKey {
         val mnemonicString = mnemonic.joinToString(" ")
         // BIP39 Standard Salt: "mnemonic" + passphrase

@@ -368,12 +368,19 @@ fun SetupForm(
                     displayError = null
                     
                     val words = if (isRestore) {
-                        recoveryInput.trim().split("\\s+".toRegex())
+                        recoveryInput.trim().lowercase().split("\\s+".toRegex())
                     } else {
                         mnemonic ?: emptyList()
                     }
+
+                    // Strict BIP39 Word Validation
+                    val invalidWords = words.filter { !MnemonicUtils.isValidWord(it) }
                     
-                    viewModel.completeSetup(password, words, isRestore)
+                    if (invalidWords.isNotEmpty()) {
+                         displayError = "Invalid words found: ${invalidWords.joinToString(", ")}"
+                    } else {
+                        viewModel.completeSetup(password, words, isRestore)
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
