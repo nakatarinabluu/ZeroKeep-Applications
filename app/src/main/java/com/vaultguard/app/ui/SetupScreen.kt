@@ -157,6 +157,7 @@ fun WelcomeContent(onNewWallet: () -> Unit, onRestoreWallet: () -> Unit) {
     }
 }
 
+
 @Composable
 fun CreateWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) {
     // START WITH RANDOM MNEMONIC
@@ -190,7 +191,9 @@ fun RestoreWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SetupFormContent(
+fun SetupForm(
+    title: String,
+    instruction: String,
     mnemonic: List<String>?,
     onRegenerateMnemonic: () -> Unit,
     isRestore: Boolean,
@@ -217,9 +220,280 @@ fun SetupFormContent(
         }
     }
 
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground
+    // Modern Gradient Background
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        com.vaultguard.app.ui.theme.BrandPurple,
+                        com.vaultguard.app.ui.theme.BrandBlue
+                    )
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header (Back Button + Title)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                Text(
+                    text = if (isRestore) "Restore Vault" else "Create Vault",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Main Content Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    
+                    if (displayError != null) {
+                        Text(
+                            text = displayError!!,
+                            color = com.vaultguard.app.ui.theme.AccentError,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+
+                    if (isRestore) {
+                        Text(
+                            text = "Enter Recovery Phrase",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = com.vaultguard.app.ui.theme.TextPrimary
+                        )
+                        Text(
+                            text = "Enter your 12-word recovery phrase separated by spaces.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = com.vaultguard.app.ui.theme.TextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        OutlinedTextField(
+                            value = recoveryInput,
+                            onValueChange = { recoveryInput = it },
+                            label = { Text("Recovery Phrase") },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                                unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                                focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                                unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                                cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
+                                focusedBorderColor = com.vaultguard.app.ui.theme.BrandBlue,
+                                unfocusedBorderColor = Color.Transparent, 
+                            ),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp),
+                            maxLines = 4
+                        )
+                    } else {
+                        // NEW VAULT CREATION
+                        Text(
+                            text = "Your Recovery Phrase",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = com.vaultguard.app.ui.theme.TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Mnemonic Display Box
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(com.vaultguard.app.ui.theme.BackgroundLight, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                                .padding(16.dp)
+                        ) {
+                           if (mnemonic != null) {
+                               FlowRow(
+                                   modifier = Modifier.fillMaxWidth(),
+                                   horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                   verticalArrangement = Arrangement.spacedBy(8.dp)
+                               ) {
+                                   mnemonic.forEachIndexed { index, word ->
+                                       AssistChip(
+                                           onClick = {},
+                                           label = { 
+                                               Text(
+                                                   "${index + 1}. $word", 
+                                                   fontWeight = FontWeight.Medium,
+                                                   color = com.vaultguard.app.ui.theme.TextPrimary
+                                               ) 
+                                           },
+                                           colors = AssistChipDefaults.assistChipColors(containerColor = Color.White),
+                                           border = null
+                                       )
+                                   }
+                               }
+                           } else {
+                               CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                           }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                         TextButton(onClick = onRegenerateMnemonic) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Regenerate Phrase", color = com.vaultguard.app.ui.theme.BrandBlue)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Box(
+                             modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFFEF2F2), androidx.compose.foundation.shape.RoundedCornerShape(8.dp)) // Red-50
+                                .padding(12.dp)
+                        ) {
+                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = com.vaultguard.app.ui.theme.AccentError)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Write this down! It's the ONLY way to recover your vault.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = com.vaultguard.app.ui.theme.AccentError
+                                )
+                             }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = "Master Password",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = com.vaultguard.app.ui.theme.TextPrimary
+                    )
+                     Text(
+                        text = "This password encrypts your vault locally.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = com.vaultguard.app.ui.theme.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Password Inputs
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Set Master Password") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                            unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                            focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                            unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                            cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
+                            focusedBorderColor = com.vaultguard.app.ui.theme.BrandBlue,
+                            unfocusedBorderColor = Color.Transparent,
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        trailingIcon = {
+                             val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                 Icon(imageVector = image, contentDescription = null, tint = com.vaultguard.app.ui.theme.TextSecondary)
+                             }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    if (!isRestore) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = confirmPassword,
+                            onValueChange = { 
+                                confirmPassword = it
+                                passwordMismatch = password != it
+                            },
+                            label = { Text("Confirm Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            singleLine = true,
+                            isError = passwordMismatch,
+                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                                unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
+                                focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                                unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
+                                cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
+                                focusedBorderColor = if (passwordMismatch) com.vaultguard.app.ui.theme.AccentError else com.vaultguard.app.ui.theme.BrandBlue,
+                                unfocusedBorderColor = Color.Transparent,
+                                errorBorderColor = com.vaultguard.app.ui.theme.AccentError
+                            ),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (passwordMismatch) {
+                            Text(
+                                text = "Passwords do not match",
+                                color = com.vaultguard.app.ui.theme.AccentError,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Button(
+                        onClick = {
+                             if (isRestore && recoveryInput.split("\\s+".toRegex()).size != 12) {
+                                 displayError = "Please enter exactly 12 words."
+                            } else if (password.length < 6) {
+                                displayError = "Password must be at least 6 characters"
+                            } else if (!isRestore && password != confirmPassword) {
+                                displayError = "Passwords do not match!"
+                            } else {
+                                // Start Verification Flow
+                                if (isRestore) {
+                                    viewModel.restoreVault(password, recoveryInput)
+                                } else {
+                                    viewModel.createVault(password, mnemonic ?: emptyList())
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                         colors = ButtonDefaults.buttonColors(containerColor = com.vaultguard.app.ui.theme.BrandBlue),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                    ) {
+                         if (isLoading) {
+                            CircularProgressIndicator(color = Color.White)
+                        } else {
+                            Text(if (isRestore) "Restore Vault" else "Create Vault", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))

@@ -169,23 +169,9 @@ fun AuthScreen(
                 IconButton(
                     title = { Text("Reset Wallet?", color = Color.White) }, // White Title
                     text = { Text("This will remove the current account from this device. You can Restore it later using your Recovery Phrase. Proceed?", color = Color(0xFFE2E8F0)) }, // Light Body
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                viewModel.wipeLocalData()
-                                onReset() 
-                            }
-                        ) {
-                            Text("Reset", color = Color(0xFFEF4444))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showResetConfirm = false }) {
-                            Text("Cancel", color = Color(0xFF94A3B8))
-                        }
-                    },
-                    containerColor = Color(0xFF1E293B) // Dark Surface
-                )
+                ) {
+                    Text("Create New Vault", color = Color.White.copy(alpha = 0.8f))
+                }
             }
         }
     }

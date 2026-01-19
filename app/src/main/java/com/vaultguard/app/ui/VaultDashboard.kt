@@ -169,41 +169,13 @@ fun VaultDashboard(
                 }
             }
 
-            // 2. Secret List (Overlapping the header slightly)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset(y = (-20).dp) // Overlap effect
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(BackgroundLight)
-                    .padding(horizontal = 16.dp)
-            ) {
-                when (val uiState = state) {
-                    is SecretState.Loading -> {
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                            CircularProgressIndicator(color = BrandBlue)
-                        }
-                    }
-                    is SecretState.Success -> {
-                        LazyColumn(
-                            contentPadding = PaddingValues(top = 24.dp, bottom = 100.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(uiState.secrets) { secret ->
-                                SecretCard(item = secret, onDelete = { viewModel.deleteSecret(it) })
-                            }
-                        }
-                    }
-                    is SecretState.Error -> {
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                            Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-        },
+    // 2. Main Content Scaffold
+    Scaffold(
+        containerColor = com.vaultguard.app.ui.theme.BackgroundLight,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddSecretClick,
-                containerColor = BrandPurple,
+                containerColor = com.vaultguard.app.ui.theme.BrandPurple,
                 contentColor = Color.White,
                 modifier = Modifier.padding(bottom = 16.dp, end = 8.dp)
             ) {
@@ -219,13 +191,14 @@ fun VaultDashboard(
                 .padding(paddingValues)
                 .offset(y = (-20).dp) // Overlap effect
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(BackgroundLight)
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(com.vaultguard.app.ui.theme.BackgroundLight)
                 .padding(horizontal = 16.dp)
         ) {
             when (val uiState = state) {
                 is SecretState.Loading -> {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(color = BrandBlue)
+                        CircularProgressIndicator(color = com.vaultguard.app.ui.theme.BrandBlue)
                     }
                 }
                 is SecretState.Success -> {
@@ -257,7 +230,7 @@ fun VaultDashboard(
                 Text(
                     text = "Settings", 
                     style = MaterialTheme.typography.headlineSmall,
-                    color = TextPrimary
+                    color = com.vaultguard.app.ui.theme.TextPrimary
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -267,7 +240,7 @@ fun VaultDashboard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Enable Biometric Login", color = TextPrimary)
+                    Text(text = "Enable Biometric Login", color = com.vaultguard.app.ui.theme.TextPrimary)
                     Switch(
                         checked = isBiometricsEnabled,
                         onCheckedChange = { shouldEnable ->
@@ -288,7 +261,7 @@ fun VaultDashboard(
                     onClick = onSignOut,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Sign Out", color = AccentError)
+                    Text("Sign Out", color = com.vaultguard.app.ui.theme.AccentError)
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -297,7 +270,7 @@ fun VaultDashboard(
                     onClick = { showSettings = false },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Close", color = TextSecondary)
+                    Text("Close", color = com.vaultguard.app.ui.theme.TextSecondary)
                 }
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -332,13 +305,13 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
                     // Icon Placeholder
                     Surface(
                         shape = androidx.compose.foundation.shape.CircleShape,
-                        color = BackgroundLight,
+                        color = com.vaultguard.app.ui.theme.BackgroundLight,
                         modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = item.title.take(1).uppercase(),
-                                color = BrandPurple,
+                                color = com.vaultguard.app.ui.theme.BrandPurple,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -350,13 +323,13 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
                             text = item.title,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = com.vaultguard.app.ui.theme.TextPrimary
                         )
                         if (item.username.isNotEmpty()) {
                             Text(
                                 text = item.username,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
+                                color = com.vaultguard.app.ui.theme.TextSecondary
                             )
                         }
                     }
@@ -366,7 +339,7 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
-                        tint = TextSecondary.copy(alpha = 0.5f)
+                        tint = com.vaultguard.app.ui.theme.TextSecondary.copy(alpha = 0.5f)
                     )
                 }
             }
@@ -377,7 +350,7 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(BackgroundLight, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .background(com.vaultguard.app.ui.theme.BackgroundLight, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                     .padding(12.dp)
             ) {
                 Row(
@@ -390,13 +363,13 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
                             text = item.password,
                             style = MaterialTheme.typography.bodyLarge,
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            color = TextPrimary
+                            color = com.vaultguard.app.ui.theme.TextPrimary
                         )
                     } else {
                          Text(
                             text = "••••••••••••",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = TextSecondary
+                            color = com.vaultguard.app.ui.theme.TextSecondary
                         )
                     }
                     
@@ -411,14 +384,14 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
                              Icon(
                                 imageVector = androidx.compose.material.icons.Icons.Default.ContentCopy,
                                 contentDescription = "Copy",
-                                tint = BrandBlue
+                                tint = com.vaultguard.app.ui.theme.BrandBlue
                             )
                         }
                     } else {
                         Icon(
                             imageVector = androidx.compose.material.icons.Icons.Default.Lock,
                             contentDescription = "Locked",
-                            tint = TextSecondary.copy(alpha=0.5f),
+                            tint = com.vaultguard.app.ui.theme.TextSecondary.copy(alpha=0.5f),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -430,16 +403,16 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) {
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete Secret?", color = TextPrimary) },
-            text = { Text("Are you sure you want to delete '${item.title}'?", color = TextSecondary) },
+            title = { Text("Delete Secret?", color = com.vaultguard.app.ui.theme.TextPrimary) },
+            text = { Text("Are you sure you want to delete '${item.title}'?", color = com.vaultguard.app.ui.theme.TextSecondary) },
             confirmButton = {
                 TextButton(onClick = { onDelete(item.id); showDeleteConfirm = false }) {
-                    Text("Delete", color = AccentError)
+                    Text("Delete", color = com.vaultguard.app.ui.theme.AccentError)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("Cancel", color = com.vaultguard.app.ui.theme.TextSecondary)
                 }
             },
             containerColor = Color.White
