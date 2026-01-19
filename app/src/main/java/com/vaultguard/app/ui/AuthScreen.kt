@@ -136,51 +136,26 @@ fun AuthScreen(
                 enabled = !isLoading && password.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
-                    contentColor = com.vaultguard.app.ui.theme.BrandPurple
+                    contentColor = com.vaultguard.app.ui.theme.BrandPurple,
+                    disabledContainerColor = Color.White.copy(alpha = 0.5f),
+                    disabledContentColor = com.vaultguard.app.ui.theme.BrandPurple.copy(alpha = 0.5f)
                 ),
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                        unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                        focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                        unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                        cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
-                        focusedBorderColor = com.vaultguard.app.ui.theme.BrandBlue,
-                        unfocusedBorderColor = Color.Transparent,
-                    ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                    trailingIcon = {
-                        val image = if (passwordVisible) androidx.compose.material.icons.Icons.Filled.Visibility else androidx.compose.material.icons.Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = null, tint = com.vaultguard.app.ui.theme.TextSecondary)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
+                 if (isLoading) {
+                     CircularProgressIndicator(
+                         modifier = Modifier.size(24.dp),
+                         color = com.vaultguard.app.ui.theme.BrandPurple,
+                         strokeWidth = 2.dp
+                     )
+                 } else {
+                     Text("Unlock Vault", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Unlock Button
-                Button(
-                    onClick = { viewModel.verifyPassword(password) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = com.vaultguard.app.ui.theme.BrandBlue),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
-                ) {
-                    if (authState is AuthState.Loading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Unlock Vault", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -188,7 +163,7 @@ fun AuthScreen(
                 TextButton(onClick = onReset) {
                     Text("Forgot Password? Reset Vault", color = com.vaultguard.app.ui.theme.AccentError)
                 }
-            }
+
         }
     }
 
