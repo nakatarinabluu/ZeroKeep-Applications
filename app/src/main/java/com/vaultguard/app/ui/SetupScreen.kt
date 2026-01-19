@@ -222,10 +222,6 @@ fun SetupForm(
         }
     }
 
-    // Set displayError if local validation fails, clear it otherwise
-    // Note: This needs to coexist with ViewModel errors. 
-    // Simplified: local validation sets displayError, VM error overwrites it.
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -248,11 +244,11 @@ fun SetupForm(
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = title, color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(text = title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
         }
         
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = instruction, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+        Text(text = instruction, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
         
         // Show Regenerate Button if Creating Wallet
         if (!isRestore && mnemonic != null) {
@@ -268,15 +264,34 @@ fun SetupForm(
         }
 
         if (!isRestore && mnemonic != null) {
-            // SHOW MNEMONIC
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    mnemonic.chunked(3).forEach { rowWords ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            rowWords.forEach { word ->
-                                Text(text = word, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(4.dp))
+            // SHOW MNEMONIC: EXECUTIVE CARD
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // Surface Variant for contrast
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) { // More padding inside
+                    mnemonic.chunked(3).forEachIndexed { i, rowWords ->
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            rowWords.forEachIndexed { j, word ->
+                                val index = (i * 3) + j + 1
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(100.dp)) {
+                                    Text(
+                                        text = "$index.", 
+                                        style = MaterialTheme.typography.labelSmall, 
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.6f),
+                                        modifier = Modifier.width(20.dp)
+                                    )
+                                    Text(
+                                        text = word, 
+                                        color = MaterialTheme.colorScheme.onSurface, 
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                             }
                         }
+                        if (i < 3) Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -292,12 +307,13 @@ fun SetupForm(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 ),
-                modifier = Modifier.fillMaxWidth().height(120.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().height(140.dp),
                 maxLines = 4
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // MASTER PASSWORD
         OutlinedTextField(
@@ -308,10 +324,10 @@ fun SetupForm(
             },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            // ANTI-FORENSICS: Disable AutoCorrect and use Text type to evade some Autofill crawlers
+            // ANTI-FORENSICS
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 autoCorrect = false,
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text, 
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, 
                 imeAction = androidx.compose.ui.text.input.ImeAction.Next
             ),
             trailingIcon = {
@@ -329,6 +345,7 @@ fun SetupForm(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
             ),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -348,6 +365,7 @@ fun SetupForm(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -355,7 +373,8 @@ fun SetupForm(
              Spacer(modifier = Modifier.height(24.dp))
         }
 
-        Button(
+        com.vaultguard.app.ui.components.VaultButton(
+            text = if (isRestore) "Restore & Finish" else "Connect & Finish",
             onClick = {
                 if (isRestore && recoveryInput.split("\\s+".toRegex()).size != 12) {
                      displayError = "Please enter exactly 12 words."
@@ -385,20 +404,9 @@ fun SetupForm(
                     }
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(if (isRestore) "Restore & Finish" else "Connect & Finish", color = MaterialTheme.colorScheme.onPrimary)
-            }
-        }
+            isLoading = isLoading
+        )
         
         if (displayError != null) {
             Spacer(modifier = Modifier.height(8.dp))

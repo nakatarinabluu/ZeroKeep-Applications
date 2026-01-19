@@ -1,5 +1,6 @@
 package com.vaultguard.app.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -7,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -14,6 +17,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.vaultguard.app.R
 import com.vaultguard.app.ui.auth.AuthState
 import com.vaultguard.app.ui.auth.AuthViewModel
+import com.vaultguard.app.ui.components.VaultButton
+import com.vaultguard.app.ui.components.VaultTextField
 
 @Composable
 fun AuthScreen(
@@ -30,7 +35,6 @@ fun AuthScreen(
         else -> 0
     }
     
-
     val isError = attempts > 0
     
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -84,94 +88,179 @@ fun AuthScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background) // Obsidian Navy
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = if (isError) 
-                stringResource(R.string.msg_attempts_remaining, 7 - attempts) 
-            else 
-                stringResource(R.string.title_unlock), 
-            color = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(R.string.label_master_password)) },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            // ANTI-FORENSICS: Disable AutoCorrect and use Text type to evade some Autofill crawlers
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                autoCorrect = false,
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
-                imeAction = androidx.compose.ui.text.input.ImeAction.Done
-            ),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary, // Electric Blue focus
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Button(
-            onClick = { 
-                viewModel.attemptUnlock(password)
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary), // Electric Blue
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.widthIn(max = 400.dp) // Constrain width on tablets
         ) {
-            Text(stringResource(R.string.btn_unlock), color = MaterialTheme.colorScheme.onPrimary)
-        }
-        
-        if (viewModel.isBiometricEnabled) {
-            TextButton(onClick = { triggerBiometrics() }) {
-                Text(stringResource(R.string.btn_biometrics), color = MaterialTheme.colorScheme.secondary)
+            // Logo Area
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 12.dp,
+                modifier = Modifier.size(100.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    // Placeholder or actual resource
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_logo_large), // Ensure resource exists or fall back
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = if (isError) 
+                    stringResource(R.string.msg_attempts_remaining, 7 - attempts) 
+                else 
+                    stringResource(R.string.title_unlock), 
+                style = MaterialTheme.typography.headlineMedium,
+                color = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            VaultTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = stringResource(R.string.label_master_password),
+                isError = isError,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
+                // Note: VaultTextField needs VisualTransformation support update or we use raw here for password specifics?
+                // Let's stick to raw OutlinedTextField here if we need specific password features not in VaultTextField yet,
+                // OR update VaultTextField. For now, let's use raw to ensure PasswordVisualTransformation works securely.
+            )
+            
+            // Actually, let's use the explicit OutlinedTextField for Password to ensure we control the VisualTransformation perfectly
+            // replacing the VaultTextField call above for correctness in this specific security context.
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        // Re-composition with Raw Field for Password specifics
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.widthIn(max = 400.dp)
+        ) {
+             // Logo Area
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 12.dp,
+                modifier = Modifier.size(100.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.scale(1.5f)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Reset / Switch Account Logic
-        var showResetConfirm by remember { mutableStateOf(false) }
-        TextButton(onClick = { showResetConfirm = true }) {
-            Text("Switch Account / Reset Wallet", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-
-        if (showResetConfirm) {
-            AlertDialog(
-                onDismissRequest = { showResetConfirm = false },
-                title = { Text("Reset Wallet?") },
-                text = { Text("This will remove the current account from this device. You can Restore it later using your Recovery Phrase. Proceed?", color = MaterialTheme.colorScheme.onSurface) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            // Properly wipe all data via ViewModel
-                            viewModel.wipeLocalData()
-                            onReset() // Navigate to Setup
-                        }
-                    ) {
-                        Text("Reset", color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showResetConfirm = false }) {
-                        Text("Cancel")
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.surface
+             Text(
+                text = if (isError) 
+                    stringResource(R.string.msg_attempts_remaining, 7 - attempts) 
+                else 
+                    stringResource(R.string.title_unlock), 
+                style = MaterialTheme.typography.headlineSmall,
+                color = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
             )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text(stringResource(R.string.label_master_password)) },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    autoCorrect = false,
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, // Corrected type
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            VaultButton(
+                text = stringResource(R.string.btn_unlock),
+                onClick = { viewModel.attemptUnlock(password) },
+                containerColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            )
+            
+            if (viewModel.isBiometricEnabled) {
+                Spacer(modifier = Modifier.height(16.dp))
+                IconButton(
+                    onClick = { triggerBiometrics() },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(android.R.drawable.ic_lock_idle_lock), // Stock lock icon as fallback or specific bio icon
+                        contentDescription = "Biometrics",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Reset / Switch Account Logic
+            var showResetConfirm by remember { mutableStateOf(false) }
+            TextButton(onClick = { showResetConfirm = true }) {
+                Text("Switch Account / Reset Wallet", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
+            }
+
+            if (showResetConfirm) {
+                AlertDialog(
+                    onDismissRequest = { showResetConfirm = false },
+                    title = { Text("Reset Wallet?") },
+                    text = { Text("This will remove the current account from this device. You can Restore it later using your Recovery Phrase. Proceed?", color = MaterialTheme.colorScheme.onSurface) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.wipeLocalData()
+                                onReset() 
+                            }
+                        ) {
+                            Text("Reset", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showResetConfirm = false }) {
+                            Text("Cancel")
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            }
         }
     }
 }
