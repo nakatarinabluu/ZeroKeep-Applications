@@ -199,51 +199,118 @@ fun VaultDashboard(
                             Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
                         }
                     }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddSecretClick,
+                containerColor = BrandPurple,
+                contentColor = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp, end = 8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Secret")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End
+    ) { paddingValues ->
+        // 2. Secret List (Overlapping the header slightly)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .offset(y = (-20).dp) // Overlap effect
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(BackgroundLight)
+                .padding(horizontal = 16.dp)
+        ) {
+            when (val uiState = state) {
+                is SecretState.Loading -> {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        CircularProgressIndicator(color = BrandBlue)
+                    }
                 }
-
-                // Floating Action Button
-                FloatingActionButton(
-                    onClick = { /* TODO: Add New Secret */ },
-                    containerColor = BrandPurple,
-                    contentColor = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 32.dp, end = 16.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Secret")
+                is SecretState.Success -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(top = 24.dp, bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.secrets) { secret ->
+                            SecretCard(item = secret, onDelete = { viewModel.deleteSecret(it) })
+                        }
+                    }
+                }
+                is SecretState.Error -> {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         }
     }
     
-    // Bottom Sheet for Settings (Reusing exiting logic, just restyling needed internally within SettingsContent)
+    // Bottom Sheet for Settings
     if (showSettings) {
         ModalBottomSheet(
             onDismissRequest = { showSettings = false },
-            containerColor = Color.White // Clean White Sheet
+            containerColor = Color.White
         ) {
-            // Placeholder for SettingsContent - assuming it's defined elsewhere or will be added
-            // For now, a simple column to avoid compilation errors
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Settings Content Placeholder", style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = "Settings", 
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = TextPrimary
+                )
                 Spacer(modifier = Modifier.height(16.dp))
-                TextButton(onClick = onLock) {
-                    Text("Lock App", color = BrandBlue)
+                
+                // Biometric Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Enable Biometric Login", color = TextPrimary)
+                    Switch(
+                        checked = isBiometricsEnabled,
+                        onCheckedChange = { shouldEnable ->
+                            if (shouldEnable) {
+                                // REQUIRE VERIFICATION to Turn ON
+                                verifyBiometrics()
+                            } else {
+                                // Turn OFF immediately
+                                viewModel.setBiometricEnabled(false)
+                            }
+                        }
+                    )
                 }
-                TextButton(onClick = { showSettings = false }) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Sign Out Option
+                TextButton(
+                    onClick = onSignOut,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Sign Out", color = AccentError)
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                TextButton(
+                    onClick = { showSettings = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("Close", color = TextSecondary)
                 }
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 }
 
 @Composable
-fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { // Changed item type to SecretUiModel and onDelete to String
+fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { 
     var revealed by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    val clipboardManager = LocalClipboardManager.current
-    val haptic = LocalHapticFeedback.current
+    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     // Modern White Card
     Card(
@@ -251,8 +318,8 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { // Changed ite
             .fillMaxWidth()
             .clickable { revealed = !revealed },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Soft shadow
-        shape = RoundedCornerShape(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Header Row
@@ -262,9 +329,9 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { // Changed ite
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Icon Placeholder (Circle)
+                    // Icon Placeholder
                     Surface(
-                        shape = RoundedCornerShape(50), // Changed to 50 for perfect circle
+                        shape = androidx.compose.foundation.shape.CircleShape,
                         color = BackgroundLight,
                         modifier = Modifier.size(48.dp)
                     ) {
@@ -310,7 +377,7 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { // Changed ite
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(BackgroundLight, RoundedCornerShape(8.dp))
+                    .background(BackgroundLight, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                     .padding(12.dp)
             ) {
                 Row(
@@ -336,26 +403,47 @@ fun SecretCard(item: SecretUiModel, onDelete: (String) -> Unit) { // Changed ite
                     if (revealed) {
                         IconButton(
                             onClick = {
-                                clipboardManager.setText(AnnotatedString(item.password))
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(item.password))
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             },
-                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                            modifier = Modifier.size(24.dp)
                         ) {
-                            Icon(
+                             Icon(
                                 imageVector = androidx.compose.material.icons.Icons.Default.ContentCopy,
-                                contentDescription = "Copy Password",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                contentDescription = "Copy",
+                                tint = BrandBlue
                             )
                         }
+                    } else {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Lock,
+                            contentDescription = "Locked",
+                            tint = TextSecondary.copy(alpha=0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
-                } else {
-                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Lock, // Standard reference
-                        contentDescription = "Locked",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha=0.2f)
-                    )
                 }
             }
         }
     }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete Secret?", color = TextPrimary) },
+            text = { Text("Are you sure you want to delete '${item.title}'?", color = TextSecondary) },
+            confirmButton = {
+                TextButton(onClick = { onDelete(item.id); showDeleteConfirm = false }) {
+                    Text("Delete", color = AccentError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = Color.White
+        )
+    }
 }
+```
