@@ -214,7 +214,48 @@ object MnemonicUtils {
 
     fun generate(): List<String> {
         val secureRandom = SecureRandom()
-        return List(12) { WORD_LIST[secureRandom.nextInt(WORD_LIST.size)] }
+        // 1. Generate 128 bits of entropy (16 bytes)
+        val entropy = ByteArray(16)
+        secureRandom.nextBytes(entropy)
+
+        // 2. Calculate Checksum (First 4 bits of SHA-256 of entropy)
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(entropy)
+        
+        // We need 132 bits total (128 entropy + 4 checksum)
+        // Let's use a BitSet for easy manipulation
+        val bitSet = java.util.BitSet(132)
+        
+        // Fill Entropy bits
+        for (i in 0 until 128) {
+            val byteIndex = i / 8
+            val bitIndex = 7 - (i % 8)
+            if ((entropy[byteIndex].toInt() shr bitIndex) and 1 == 1) {
+                bitSet.set(i)
+            }
+        }
+        
+        // Fill Checksum bits
+        val checksumByte = hash[0].toInt()
+        for (i in 0 until 4) {
+            if ((checksumByte shr (7 - i)) and 1 == 1) {
+                bitSet.set(128 + i)
+            }
+        }
+        
+        // 3. Group into 11-bit chunks to get indices
+        val words = mutableListOf<String>()
+        for (i in 0 until 12) {
+            var index = 0
+            for (j in 0 until 11) {
+                if (bitSet.get(i * 11 + j)) {
+                    index = index or (1 shl (10 - j))
+                }
+            }
+            words.add(WORD_LIST[index])
+        }
+        
+        return words
     }
 
     fun isValidWord(word: String): Boolean {
