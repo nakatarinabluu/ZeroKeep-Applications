@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.scale
 
@@ -311,12 +312,12 @@ fun SecretItem(
             
             // Row 2: Password (Hidden/Revealed) + Copy + Timer
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
+                    .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background.copy(alpha=0.5f), androidx.compose.foundation.shape.RoundedCornerShape(8.dp)) // Subtle background for password area
-                    .padding(12.dp)
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -331,7 +332,7 @@ fun SecretItem(
                             text = if (isRevealed) item.password else "•••• •••• ••••",
                             color = if (isRevealed) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha=0.3f), // High contrast when revealed
                             style = if (isRevealed) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Monospace // Monospace for password
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace // Monospace for password
                         )
                     }
                 }
@@ -346,8 +347,8 @@ fun SecretItem(
                         )
                         FilledIconButton( // Prominent Copy Button
                             onClick = {
-                                clipboardManager.copyToClipboard("Secret", item.password)
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.ContextClick)
+                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(item.password)) // Correct copy method
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
@@ -360,7 +361,7 @@ fun SecretItem(
                     }
                 } else {
                      Icon(
-                        imageVector = androidx.compose.material.icons.filled.Lock, // Lock icon when hidden
+                        imageVector = androidx.compose.material.icons.Icons.Default.Lock, // Lock icon when hidden
                         contentDescription = "Locked",
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha=0.2f)
                     )

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -110,7 +111,7 @@ fun AuthScreen(
                 Box(contentAlignment = Alignment.Center) {
                     // Placeholder or actual resource
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_logo_large), // Ensure resource exists or fall back
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground), // Use existing resource
                         contentDescription = null,
                         tint = Color.Unspecified,
                         modifier = Modifier.size(64.dp)
@@ -142,13 +143,8 @@ fun AuthScreen(
                     focusedBorderColor = if (attempts > 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
-                // Note: VaultTextField needs VisualTransformation support update or we use raw here for password specifics?
-                // Let's stick to raw OutlinedTextField here if we need specific password features not in VaultTextField yet,
-                // OR update VaultTextField. For now, let's use raw to ensure PasswordVisualTransformation works securely.
             )
             
-            // Actually, let's use the explicit OutlinedTextField for Password to ensure we control the VisualTransformation perfectly
-            // replacing the VaultTextField call above for correctness in this specific security context.
         }
         
         // Re-composition with Raw Field for Password specifics
