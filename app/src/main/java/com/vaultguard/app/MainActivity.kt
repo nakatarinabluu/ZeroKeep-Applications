@@ -38,6 +38,17 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 1. INTEGRITY CHECK (Root/Emulator Detection)
+        // If device is compromised, we shutdown immediately to protect data.
+        if (com.vaultguard.app.security.SecurityUtils.isDeviceCompromised(this)) {
+            // In a real banking app, we would show a Dialog explaining why.
+            // For security, we crash/close silently or show a generic toast.
+            android.widget.Toast.makeText(this, "Security Violation: Unsupported Device Environment", android.widget.Toast.LENGTH_LONG).show()
+            finishAffinity() // Close all activities
+            System.exit(0)   // Kill process
+            return
+        }
+
         // LIFECYCLE: Register Clipboard Limiter (Clears clipboard on background)
         lifecycle.addObserver(clipboardManager)
 

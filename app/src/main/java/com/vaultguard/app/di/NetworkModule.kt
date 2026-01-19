@@ -84,6 +84,16 @@ object NetworkModule {
             }
             .addInterceptor(hmacInterceptor)
             .addNetworkInterceptor(loggingInterceptor) // Log FINAL request (with headers)
+            // CERTIFICATE PINNING (Anti-MitM)
+            // Pins the public key of the server to prevent Man-in-the-Middle attacks.
+            // 1. Primary: *.vercel.app Leaf Certificate (Provided by User)
+            // 2. Backup: GTS Root R1 (Google Trust Services) - Ensures connectivity if Leaf rotates.
+            .certificatePinner(
+                okhttp3.CertificatePinner.Builder()
+                    .add("zerokeep.vercel.app", "sha256/DZM9Oxxp3uxt5JJnpUtfT6flVVHLDXP55RI/BtoaY1E=")
+                    .add("zerokeep.vercel.app", "sha256/hxqRlPTu184Imu34eHV543wKhnaL2YEFT9gin9GH7pE=")
+                    .build()
+            )
             // Strict timeouts to mitigate Slowloris / hanging connections
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
