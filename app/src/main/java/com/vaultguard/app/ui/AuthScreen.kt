@@ -40,19 +40,7 @@ fun AuthScreen(
     
     val context = androidx.compose.ui.platform.LocalContext.current
     
-    // Biometric Logic (Extracted)
-    val triggerBiometrics = {
-        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
-        val biometricPrompt = androidx.biometric.BiometricPrompt(
-            context as androidx.fragment.app.FragmentActivity,
-            executor,
-            object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    viewModel.biometricUnlockSuccess()
-                }
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-    var shakeOffset by remember { mutableStateOf(0f) }
+    val shakeOffset by remember { mutableFloatStateOf(0f) }
     var passwordVisible by remember { mutableStateOf(false) }
 
     // Modern Gradient Background
@@ -60,7 +48,7 @@ fun AuthScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                     colors = listOf(
                         com.vaultguard.app.ui.theme.BrandPurple,
                         com.vaultguard.app.ui.theme.BrandBlue
@@ -92,7 +80,7 @@ fun AuthScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
+                        imageVector = androidx.compose.material.icons.Icons.Default.Lock,
                         contentDescription = null,
                         tint = com.vaultguard.app.ui.theme.BrandPurple,
                         modifier = Modifier.size(40.dp)
@@ -135,14 +123,13 @@ fun AuthScreen(
                     ),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                     trailingIcon = {
-                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        val image = if (passwordVisible) androidx.compose.material.icons.Icons.Filled.Visibility else androidx.compose.material.icons.Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(imageVector = image, contentDescription = null, tint = com.vaultguard.app.ui.theme.TextSecondary)
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(x = shakeOffset.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -165,14 +152,12 @@ fun AuthScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Biometric Button (Icon)
-                IconButton(
-                    title = { Text("Reset Wallet?", color = Color.White) }, // White Title
-                    text = { Text("This will remove the current account from this device. You can Restore it later using your Recovery Phrase. Proceed?", color = Color(0xFFE2E8F0)) }, // Light Body
-                ) {
-                    Text("Create New Vault", color = Color.White.copy(alpha = 0.8f))
+                // Reset Button
+                TextButton(onClick = onReset) {
+                    Text("Forgot Password? Reset Vault", color = com.vaultguard.app.ui.theme.AccentError)
                 }
             }
         }
     }
+
 }

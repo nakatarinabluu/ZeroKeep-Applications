@@ -167,7 +167,14 @@ fun VaultDashboard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSettings = false }) {
+                    Text("Close", color = com.vaultguard.app.ui.theme.BrandBlue)
+                }
             }
+        )
+    }
 
     // 2. Main Content Scaffold
     Scaffold(
