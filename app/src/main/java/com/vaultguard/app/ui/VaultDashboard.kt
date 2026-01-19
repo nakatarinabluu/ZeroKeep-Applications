@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
@@ -345,9 +346,13 @@ fun SecretItem(
                             style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.padding(end = 12.dp)
                         )
+import androidx.compose.material.icons.filled.Lock
+
+// ...
+
                         FilledIconButton( // Prominent Copy Button
                             onClick = {
-                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(item.password)) // Correct copy method
+                                clipboardManager.copyToClipboard("Secret", item.password) // Correct method
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -361,7 +366,7 @@ fun SecretItem(
                     }
                 } else {
                      Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Lock, // Lock icon when hidden
+                        imageVector = androidx.compose.material.icons.Filled.Lock, // Correct reference with import
                         contentDescription = "Locked",
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha=0.2f)
                     )
