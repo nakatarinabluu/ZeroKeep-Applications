@@ -1,0 +1,1 @@
+# Setup Files\n\nThis directory contains template files needed to set up the build environment.\n\n- **keystore.properties.example**: Copy this to the root 'android/' folder and rename to 'keystore.properties'. Fill it with your real signing keys.

@@ -13,5 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local Workshop Tools (User Request)
+*.py
+scripts/
 generate_obfuscation.py
 keystore.properties
