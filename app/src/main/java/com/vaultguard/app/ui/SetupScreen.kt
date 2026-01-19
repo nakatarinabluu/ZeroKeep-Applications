@@ -378,6 +378,8 @@ fun SetupForm(
                     
                     if (invalidWords.isNotEmpty()) {
                          displayError = "Invalid words found: ${invalidWords.joinToString(", ")}"
+                    } else if (!MnemonicUtils.validateMnemonic(words)) {
+                         displayError = "Invalid Checksum! The order of words is incorrect or words are invalid."
                     } else {
                         viewModel.completeSetup(password, words, isRestore)
                     }

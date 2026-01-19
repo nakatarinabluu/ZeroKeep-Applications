@@ -221,6 +221,62 @@ object MnemonicUtils {
         return WORD_LIST.contains(word.trim().lowercase())
     }
 
+    /**
+     * Validates the BIP39 checksum of a 12-word mnemonic.
+     * Returns true if the phrase is valid, false otherwise.
+     */
+    fun validateMnemonic(mnemonic: List<String>): Boolean {
+        if (mnemonic.size != 12) return false
+
+        try {
+            // 1. Convert words to indices (11 bits each)
+            val bitSet = java.util.BitSet(132)
+            var currentBitIndex = 0
+
+            for (word in mnemonic) {
+                val index = WORD_LIST.indexOf(word.trim().lowercase())
+                if (index == -1) return false // Invalid word
+
+                // Append 11 bits of the index
+                for (i in 10 downTo 0) {
+                    val bit = (index shr i) and 1
+                    if (bit == 1) {
+                        bitSet.set(currentBitIndex)
+                    }
+                    currentBitIndex++
+                }
+            }
+
+            // 2. Extract Entropy (First 128 bits)
+            val entropyBytes = ByteArray(16)
+            for (i in 0 until 128) {
+                if (bitSet.get(i)) {
+                    val byteIndex = i / 8
+                    val bitIndex = 7 - (i % 8)
+                    entropyBytes[byteIndex] = (entropyBytes[byteIndex].toInt() or (1 shl bitIndex)).toByte()
+                }
+            }
+
+            // 3. Extract Checksum (Last 4 bits)
+            var hasChecksumValue = 0
+            for (i in 0 until 4) {
+                 if (bitSet.get(128 + i)) {
+                     hasChecksumValue = hasChecksumValue or (1 shl (3 - i))
+                 }
+            }
+
+            // 4. Calculate Expected Checksum (SHA256 of Entropy, take first 4 bits)
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            val hash = digest.digest(entropyBytes)
+            val expectedChecksum = (hash[0].toInt() and 0xFF) ushr 4
+
+            return hasChecksumValue == expectedChecksum
+
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
     fun deriveKey(mnemonic: List<String>, passphrase: String = ""): javax.crypto.SecretKey {
         val mnemonicString = mnemonic.joinToString(" ")
         // BIP39 Standard Salt: "mnemonic" + passphrase
