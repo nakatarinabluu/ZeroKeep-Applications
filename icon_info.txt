@@ -1,0 +1,3 @@
+Mode: RGBA
+Corner Pixel: (255, 255, 251, 255)
+Center Pixel: (254, 254, 254, 255)

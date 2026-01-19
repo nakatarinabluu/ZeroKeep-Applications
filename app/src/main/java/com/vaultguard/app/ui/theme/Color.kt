@@ -2,48 +2,35 @@ package com.vaultguard.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Modern Clean Palette
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// --- MODERN CLEAN FINTECH PALETTE ---
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Backgrounds
+val SoftCloud = Color(0xFFF8FAFC) // Main Background (Slate-50)
+val PureWhite = Color(0xFFFFFFFF) // Card Surfaces
 
-// Brand Gradients
-val BrandPurple = Color(0xFF8B5CF6) // Violet-500
-val BrandBlue = Color(0xFF3B82F6)   // Blue-500
-val BrandDark = Color(0xFF1E293B)   // Slate-800
-val BrandLight = Color(0xFFF8FAFC)  // Slate-50
+// Primary Gradients & Accents
+val BlueGradientStart = Color(0xFF3B82F6) // Bright Blue (Blue-500)
+val BlueGradientEnd = Color(0xFF2563EB) // Deep Blue (Blue-600)
+val OceanGradientStart = Color(0xFF0EA5E9) // Sky Blue
+val OceanGradientEnd = Color(0xFF3B82F6) // Blue
+
+// Typography
+val TextPrimary = Color(0xFF1E293B) // Slate-800 (High Contrast)
+val TextSecondary = Color(0xFF64748B) // Slate-500 (Soft Grey)
+val TextTertiary = Color(0xFF94A3B8) // Slate-400
 
 // Functional Colors
-val BackgroundLight = Color(0xFFF1F5F9) // Slate-100
-val SurfaceWhite = Color(0xFFFFFFFF)
-val TextPrimary = Color(0xFF0F172A)     // Slate-900
-val TextSecondary = Color(0xFF64748B)   // Slate-500
-val AccentSuccess = Color(0xFF10B981)   // Emerald-500
-val AccentError = Color(0xFFEF4444)     // Red-500
-val SlateGray = Color(0xFF64748B)         // Secondary Text / Icons
+val AccentSuccess = Color(0xFF10B981) // Emerald-500
+val AccentError = Color(0xFFEF4444) // Red-500
+val AccentWarning = Color(0xFFF59E0B) // Amber-500
 
-// Dark Theme Surfaces
-val DarkBackground = Color(0xFF0F172A)    // Deep Slate (Not black, rich dark blue-grey)
-val DarkSurface = Color(0xFF1E293B)       // Lighter Slate (Cards, Bottom Sheets)
-val DarkTextPrimary = Color(0xFFF8FAFC)   // Off-White (High Legibility)
-val DarkTextSecondary = Color(0xFF94A3B8) // Muted Slate
+// Legacy Compatibility (Mapped)
+val BrandPurple = BlueGradientEnd
+val BrandBlue = OceanGradientStart
+val BackgroundLight = SoftCloud
+val SurfaceWhite = PureWhite
+val LightSilver = Color(0xFFF1F5F9) // Slate-100 (Inputs/Dividers)
 
-// Light Theme Surfaces (Swiss Style)
-val LightBackground = Color(0xFFF8FAFC)   // Very light grey/white
-val LightSurface = Color(0xFFFFFFFF)      // Pure White
-val LightTextPrimary = Color(0xFF0F172A)  // Deep Slate Text
-val LightTextSecondary = Color(0xFF475569) // Medium Slate
-
-// Functional
-val DangerRed = Color(0xFFDC2626)         // Professional Red (Alerts)
-val SuccessGreen = Color(0xFF16A34A)      // Professional Green (Success)
-val WarningAmber = Color(0xFFD97706)      // Professional Amber (Warning)
-
-// Missing Brand Colors
-val MidnightBlue = Color(0xFF020617)      // Deep Executive Blue
-val RoyalBlue = Color(0xFF2563EB)         // Rich Interaction Blue
-
+// Dark Mode Fallbacks (Deep Navy)
+val DarkBackground = Color(0xFF0F172A)
+val DarkSurface = Color(0xFF1E293B)

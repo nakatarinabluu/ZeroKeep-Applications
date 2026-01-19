@@ -1,506 +1,493 @@
 package com.vaultguard.app.ui
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import com.vaultguard.app.security.MnemonicUtils
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.animation.core.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.vaultguard.app.security.MnemonicUtils
+import com.vaultguard.app.ui.theme.*
 
 @Composable
-fun SetupScreen(onSetupComplete: (String) -> Unit) {
-    var step by remember { mutableStateOf(SetupStep.WELCOME) }
-
-    // Handle System Back Press? (Optional, but UI Back button is requested)
-    
-    when (step) {
-        SetupStep.WELCOME -> WelcomeContent(
-            onNewWallet = { step = SetupStep.CREATE },
-            onRestoreWallet = { step = SetupStep.RESTORE }
-        )
-        SetupStep.CREATE -> CreateWalletContent(
-            onSetupComplete = onSetupComplete,
-            onBack = { step = SetupStep.WELCOME }
-        )
-        SetupStep.RESTORE -> RestoreWalletContent(
-            onSetupComplete = onSetupComplete,
-            onBack = { step = SetupStep.WELCOME }
-        )
-    }
-}
-
-enum class SetupStep { WELCOME, CREATE, RESTORE }
-
-@Composable
-fun WelcomeContent(onNewWallet: () -> Unit, onRestoreWallet: () -> Unit) {
-    // Animation States
-    val transitionState = remember { androidx.compose.animation.core.MutableTransitionState(false) }
-    transitionState.targetState = true
-    
-    val transition = androidx.compose.animation.core.updateTransition(transitionState, label = "WelcomeEntrance")
-
-    val logoScale by transition.animateFloat(
-        transitionSpec = { androidx.compose.animation.core.tween(durationMillis = 800, easing = androidx.compose.animation.core.FastOutSlowInEasing) },
-        label = "LogoScale"
-    ) { if (it) 1f else 0.5f }
-
-    val logoAlpha by transition.animateFloat(
-        transitionSpec = { androidx.compose.animation.core.tween(durationMillis = 800) },
-        label = "LogoAlpha"
-    ) { if (it) 1f else 0f }
-    
-    val contentAlpha by transition.animateFloat(
-        transitionSpec = { androidx.compose.animation.core.tween(durationMillis = 1000, delayMillis = 300) },
-        label = "ContentAlpha"
-    ) { if (it) 1f else 0f }
-
-    val contentOffsetY by transition.animateDp(
-        transitionSpec = { androidx.compose.animation.core.tween(durationMillis = 1000, delayMillis = 300, easing = androidx.compose.animation.core.FastOutSlowInEasing) },
-        label = "ContentOffset"
-    ) { if (it) 0.dp else 50.dp }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // App Logo Icon with Animation & Styling
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .graphicsLayer(
-                    scaleX = logoScale,
-                    scaleY = logoScale,
-                    alpha = logoAlpha
-                )
-                .shadow(elevation = 16.dp, shape = androidx.compose.foundation.shape.CircleShape, spotColor = MaterialTheme.colorScheme.primary)
-                .background(MaterialTheme.colorScheme.surface, shape = androidx.compose.foundation.shape.CircleShape)
-                .clip(androidx.compose.foundation.shape.CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-             Icon(
-                painter = androidx.compose.ui.res.painterResource(id = com.vaultguard.app.R.drawable.ic_launcher_foreground),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(120.dp) // Fill the box
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Column(
-            modifier = Modifier.graphicsLayer(
-                alpha = contentAlpha,
-                translationY = contentOffsetY.value
-            ),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Welcome to ZeroKeep",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Secure your digital world with\nZero Knowledge protection.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                lineHeight = 24.sp
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = onNewWallet,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp, pressedElevation = 2.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth().height(56.dp)
-            ) {
-                Text("Create New Vault", color = MaterialTheme.colorScheme.onPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = onRestoreWallet,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth().height(56.dp)
-            ) {
-                Text("I have a Recovery Phrase", fontSize = 16.sp)
-            }
-        }
-    }
-}
-
-
-@Composable
-fun CreateWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) {
-    // START WITH RANDOM MNEMONIC
-    var mnemonic by remember { mutableStateOf(MnemonicUtils.generate()) }
-    
-    SetupForm(
-        title = stringResource(com.vaultguard.app.R.string.title_setup),
-        instruction = "Write down these words. You will need them to recover your account.",
-        mnemonic = mnemonic,
-        onRegenerateMnemonic = { mnemonic = MnemonicUtils.generate() },
-        isRestore = false,
-        onSetupComplete = onSetupComplete,
-        onBack = onBack
-    )
-}
-
-@Composable
-fun RestoreWalletContent(onSetupComplete: (String) -> Unit, onBack: () -> Unit) {
-    // In a real app, we would validate these words against BIP39 list
-    
-    SetupForm(
-        title = "Restore Vault",
-        instruction = "Enter your 12-word recovery phrase to restore your access.",
-        mnemonic = null, // No mnemonic to show, we input it
-        onRegenerateMnemonic = {},
-        isRestore = true,
-        onSetupComplete = onSetupComplete,
-        onBack = onBack
-    )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun SetupForm(
-    title: String,
-    instruction: String,
-    mnemonic: List<String>?,
-    onRegenerateMnemonic: () -> Unit,
-    isRestore: Boolean,
-    onSetupComplete: (String) -> Unit,
-    onBack: () -> Unit,
-    viewModel: SetupViewModel = hiltViewModel()
+fun SetupScreen(
+        onSetupComplete: () -> Unit,
+        initialRestoreMode: Boolean = false,
+        viewModel: SetupViewModel = hiltViewModel()
 ) {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var recoveryInput by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var passwordMismatch by remember { mutableStateOf(false) }
-    
-    // State Observation
-    val setupState by viewModel.setupState.collectAsState()
-    var displayError by remember { mutableStateOf<String?>(null) }
-    val isLoading = setupState is SetupState.Loading
+        val state by viewModel.setupState.collectAsState()
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
 
-    LaunchedEffect(setupState) {
-        when (val state = setupState) {
-            is SetupState.Success -> onSetupComplete(state.password)
-            is SetupState.Error -> displayError = state.message
-            else -> {}
-        }
-    }
+        // Steps: 0 = Welcome/Choice, 1 = Form (Create or Restore)
+        // If initialRestoreMode is true, we might want to skip directly or show Restore selected.
+        // User requested "2 choices at start", so we enforce Step 0 unless we really want to skip.
+        // However, if coming from "Reset", maybe stick to immediate restore?
+        // Let's stick to the Welcome Page as requested for "First Time", but for Reset maybe
+        // immediate?
+        // User said "running for the first time... straight to login".
+        // Let's implement the Welcome Page as default entry.
 
-    // Modern Gradient Background
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        com.vaultguard.app.ui.theme.BrandPurple,
-                        com.vaultguard.app.ui.theme.BrandBlue
-                    )
-                )
-            )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .verticalScroll(androidx.compose.foundation.rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+        var currentStep by remember { mutableStateOf(if (initialRestoreMode) 1 else 0) }
+        var isRestoreMode by remember { mutableStateOf(initialRestoreMode) }
+
+        // reset setup flag when entering this screen to fix the loop issue
+        LaunchedEffect(Unit) { viewModel.prepareNewSetup() }
+
+        var recoveryInput by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var confirmPassword by remember { mutableStateOf("") }
+        var passwordVisible by remember { mutableStateOf(false) }
+
+        val generatedMnemonic = remember { MnemonicUtils.generate() }
+        val scrollState = rememberScrollState()
+
+        Box(
+                modifier =
+                        Modifier.fillMaxSize()
+                                .background(SoftCloud)
+                                .padding(24.dp)
+                                .verticalScroll(scrollState),
+                contentAlignment = Alignment.Center
         ) {
-            // Header (Back Button + Title)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-                }
-                Text(
-                    text = if (isRestore) "Restore Vault" else "Create Vault",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Main Content Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    
-                    if (displayError != null) {
-                        Text(
-                            text = displayError!!,
-                            color = com.vaultguard.app.ui.theme.AccentError,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                    }
-
-                    if (isRestore) {
-                        Text(
-                            text = "Enter Recovery Phrase",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = com.vaultguard.app.ui.theme.TextPrimary
-                        )
-                        Text(
-                            text = "Enter your 12-word recovery phrase separated by spaces.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = com.vaultguard.app.ui.theme.TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        OutlinedTextField(
-                            value = recoveryInput,
-                            onValueChange = { recoveryInput = it },
-                            label = { Text("Recovery Phrase") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                                unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                                focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                                unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                                cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
-                                focusedBorderColor = com.vaultguard.app.ui.theme.BrandBlue,
-                                unfocusedBorderColor = Color.Transparent, 
-                            ),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp),
-                            maxLines = 4
-                        )
-                    } else {
-                        // NEW VAULT CREATION
-                        Text(
-                            text = "Your Recovery Phrase",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = com.vaultguard.app.ui.theme.TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Mnemonic Display Box
+                Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp)
+                ) {
+                        // -- LOGO --
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(com.vaultguard.app.ui.theme.BackgroundLight, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                                .padding(16.dp)
+                                modifier =
+                                        Modifier.size(80.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .background(
+                                                        brush =
+                                                                Brush.linearGradient(
+                                                                        colors =
+                                                                                listOf(
+                                                                                        BlueGradientStart,
+                                                                                        BlueGradientEnd
+                                                                                )
+                                                                )
+                                                ),
+                                contentAlignment = Alignment.Center
                         ) {
-                           if (mnemonic != null) {
-                               FlowRow(
-                                   modifier = Modifier.fillMaxWidth(),
-                                   horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                   verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
-                               ) {
-                                   mnemonic.forEachIndexed { index, word ->
-                                       AssistChip(
-                                           onClick = {},
-                                           label = { 
-                                               Text(
-                                                   "${index + 1}. $word", 
-                                                   fontWeight = FontWeight.Medium,
-                                                   color = com.vaultguard.app.ui.theme.TextPrimary
-                                               ) 
-                                           },
-                                           colors = AssistChipDefaults.assistChipColors(containerColor = Color.White),
-                                           border = null
-                                       )
-                                   }
-                               }
-                           } else {
-                               CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                           }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                         TextButton(onClick = onRegenerateMnemonic) {
-                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Regenerate Phrase", color = com.vaultguard.app.ui.theme.BrandBlue)
-                        }
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Box(
-                             modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFFFEF2F2), androidx.compose.foundation.shape.RoundedCornerShape(8.dp)) // Red-50
-                                .padding(12.dp)
-                        ) {
-                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Warning, contentDescription = null, tint = com.vaultguard.app.ui.theme.AccentError)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Write this down! It's the ONLY way to recover your vault.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = com.vaultguard.app.ui.theme.AccentError
+                                Icon(
+                                        painter =
+                                                androidx.compose.ui.res.painterResource(
+                                                        id = com.vaultguard.app.R.drawable.app_logo
+                                                ),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(56.dp)
                                 )
-                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Master Password",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = com.vaultguard.app.ui.theme.TextPrimary
-                    )
-                     Text(
-                        text = "This password encrypts your vault locally.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = com.vaultguard.app.ui.theme.TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Password Inputs
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Set Master Password") },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                            unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                            focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                            unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                            cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
-                            focusedBorderColor = com.vaultguard.app.ui.theme.BrandBlue,
-                            unfocusedBorderColor = Color.Transparent,
-                        ),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                        trailingIcon = {
-                             val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                 Icon(imageVector = image, contentDescription = null, tint = com.vaultguard.app.ui.theme.TextSecondary)
-                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    if (!isRestore) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        OutlinedTextField(
-                            value = confirmPassword,
-                            onValueChange = { 
-                                confirmPassword = it
-                                passwordMismatch = password != it
-                            },
-                            label = { Text("Confirm Password") },
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            singleLine = true,
-                            isError = passwordMismatch,
-                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                                unfocusedTextColor = com.vaultguard.app.ui.theme.TextPrimary,
-                                focusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                                unfocusedContainerColor = com.vaultguard.app.ui.theme.BackgroundLight,
-                                cursorColor = com.vaultguard.app.ui.theme.BrandBlue,
-                                focusedBorderColor = if (passwordMismatch) com.vaultguard.app.ui.theme.AccentError else com.vaultguard.app.ui.theme.BrandBlue,
-                                unfocusedBorderColor = Color.Transparent,
-                                errorBorderColor = com.vaultguard.app.ui.theme.AccentError
-                            ),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
+                        // -- TITLE --
+                        Text(
+                                text = "ZeroKeep",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Bold
                         )
-                        if (passwordMismatch) {
-                            Text(
-                                text = "Passwords do not match",
-                                color = com.vaultguard.app.ui.theme.AccentError,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-                            )
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Button(
-                        onClick = {
-                             if (isRestore && recoveryInput.split("\\s+".toRegex()).size != 12) {
-                                 displayError = "Please enter exactly 12 words."
-                            } else if (password.length < 6) {
-                                displayError = "Password must be at least 6 characters"
-                            } else if (!isRestore && password != confirmPassword) {
-                                displayError = "Passwords do not match!"
-                            } else {
-                                // Start Verification Flow
-                                if (isRestore) {
-                                    viewModel.restoreVault(password, recoveryInput.trim().split("\\s+".toRegex()))
-                                } else {
-                                    viewModel.createVault(password, mnemonic ?: emptyList())
+                        Text(
+                                text = "Secure. Private. Yours.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(48.dp))
+
+                        // -- STEP 0: WELCOME / CHOICES --
+                        if (currentStep == 0) {
+                                // Create New Vault Button
+                                Button(
+                                        onClick = {
+                                                isRestoreMode = false
+                                                currentStep = 1
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(60.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors =
+                                                ButtonDefaults.buttonColors(
+                                                        containerColor = BlueGradientEnd,
+                                                        contentColor = Color.White
+                                                ),
+                                        elevation = ButtonDefaults.buttonElevation(4.dp)
+                                ) {
+                                        Icon(Icons.Default.Add, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                                text = "Create New Vault",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold
+                                        )
                                 }
-                            }
-                        },
-                        enabled = !isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                         colors = ButtonDefaults.buttonColors(containerColor = com.vaultguard.app.ui.theme.BrandBlue),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
-                    ) {
-                         if (isLoading) {
-                            CircularProgressIndicator(color = Color.White)
-                        } else {
-                            Text(if (isRestore) "Restore Vault" else "Create Vault", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                // Restore Button
+                                OutlinedButton(
+                                        onClick = {
+                                                isRestoreMode = true
+                                                currentStep = 1
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(60.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        border = BorderStroke(2.dp, BlueGradientEnd),
+                                        colors =
+                                                ButtonDefaults.outlinedButtonColors(
+                                                        contentColor = BlueGradientEnd
+                                                )
+                                ) {
+                                        Icon(
+                                                Icons.Default.Restore,
+                                                contentDescription = null
+                                        ) // Requires material-icons-extended, use Refresh if
+                                        // missing
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                                text = "Restore Existing Vault",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold
+                                        )
+                                }
                         }
-                    }
+                        // -- STEP 1: FORM --
+                        else {
+                                // ... (Existing Card Logic) ...
+                                // Back Button (Small)
+                                TextButton(onClick = { currentStep = 0 }) {
+                                        Text("< Back to Options", color = TextSecondary)
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Card(
+                                        colors =
+                                                CardDefaults.cardColors(containerColor = PureWhite),
+                                        elevation =
+                                                CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                ) {
+                                        Column(modifier = Modifier.padding(24.dp)) {
+                                                // Header
+                                                Text(
+                                                        text =
+                                                                if (isRestoreMode) "Restore Vault"
+                                                                else "New Vault Setup",
+                                                        style =
+                                                                MaterialTheme.typography
+                                                                        .titleMedium,
+                                                        color = BlueGradientEnd,
+                                                        fontWeight = FontWeight.Bold
+                                                )
+                                                Spacer(modifier = Modifier.height(16.dp))
+
+                                                if (state is SetupState.Idle ||
+                                                                state is SetupState.Error
+                                                ) {
+                                                        if (!isRestoreMode) {
+                                                                // CREATE FLOW
+                                                                Text(
+                                                                        "Recovery Phrase",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .titleSmall,
+                                                                        fontWeight = FontWeight.Bold
+                                                                )
+                                                                Text(
+                                                                        "Save these words safely.",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .bodySmall,
+                                                                        color = TextSecondary
+                                                                )
+                                                                Spacer(
+                                                                        modifier =
+                                                                                Modifier.height(
+                                                                                        16.dp
+                                                                                )
+                                                                )
+
+                                                                @OptIn(ExperimentalLayoutApi::class)
+                                                                FlowRow(
+                                                                        horizontalArrangement =
+                                                                                Arrangement
+                                                                                        .spacedBy(
+                                                                                                8.dp
+                                                                                        ),
+                                                                        verticalArrangement =
+                                                                                Arrangement
+                                                                                        .spacedBy(
+                                                                                                8.dp
+                                                                                        )
+                                                                ) {
+                                                                        generatedMnemonic
+                                                                                .forEachIndexed {
+                                                                                        index,
+                                                                                        word ->
+                                                                                        SuggestionChip(
+                                                                                                onClick = {
+                                                                                                },
+                                                                                                label = {
+                                                                                                        Text(
+                                                                                                                "${index + 1}. $word"
+                                                                                                        )
+                                                                                                },
+                                                                                                colors =
+                                                                                                        SuggestionChipDefaults
+                                                                                                                .suggestionChipColors(
+                                                                                                                        containerColor =
+                                                                                                                                SoftCloud
+                                                                                                                )
+                                                                                        )
+                                                                                }
+                                                                }
+                                                                Spacer(
+                                                                        modifier =
+                                                                                Modifier.height(
+                                                                                        16.dp
+                                                                                )
+                                                                )
+                                                                OutlinedButton(
+                                                                        onClick = {
+                                                                                val text =
+                                                                                        generatedMnemonic
+                                                                                                .joinToString(
+                                                                                                        " "
+                                                                                                )
+                                                                                clipboardManager
+                                                                                        .setText(
+                                                                                                androidx.compose
+                                                                                                        .ui
+                                                                                                        .text
+                                                                                                        .AnnotatedString(
+                                                                                                                text
+                                                                                                        )
+                                                                                        )
+                                                                        },
+                                                                        modifier =
+                                                                                Modifier.fillMaxWidth()
+                                                                ) { Text("Copy Phrase") }
+                                                        } else {
+                                                                // RESTORE FLOW
+                                                                Text(
+                                                                        "Enter Recovery Phrase",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .titleSmall,
+                                                                        fontWeight = FontWeight.Bold
+                                                                )
+                                                                Text(
+                                                                        "12 words separated by spaces",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .bodySmall,
+                                                                        color = TextSecondary
+                                                                )
+                                                                Spacer(
+                                                                        modifier =
+                                                                                Modifier.height(
+                                                                                        16.dp
+                                                                                )
+                                                                )
+                                                                OutlinedTextField(
+                                                                        value = recoveryInput,
+                                                                        onValueChange = {
+                                                                                recoveryInput = it
+                                                                        },
+                                                                        modifier =
+                                                                                Modifier.fillMaxWidth()
+                                                                                        .height(
+                                                                                                120.dp
+                                                                                        ),
+                                                                        placeholder = {
+                                                                                Text(
+                                                                                        "abandon ability..."
+                                                                                )
+                                                                        },
+                                                                        shape =
+                                                                                RoundedCornerShape(
+                                                                                        12.dp
+                                                                                )
+                                                                )
+                                                        }
+
+                                                        Divider(
+                                                                modifier =
+                                                                        Modifier.padding(
+                                                                                vertical = 24.dp
+                                                                        ),
+                                                                color = LightSilver
+                                                        )
+
+                                                        // PASSWORDS
+                                                        OutlinedTextField(
+                                                                value = password,
+                                                                onValueChange = { password = it },
+                                                                label = { Text("Master Password") },
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                visualTransformation =
+                                                                        if (passwordVisible)
+                                                                                VisualTransformation
+                                                                                        .None
+                                                                        else
+                                                                                PasswordVisualTransformation(),
+                                                                trailingIcon = {
+                                                                        IconButton(
+                                                                                onClick = {
+                                                                                        passwordVisible =
+                                                                                                !passwordVisible
+                                                                                }
+                                                                        ) {
+                                                                                Icon(
+                                                                                        if (passwordVisible
+                                                                                        )
+                                                                                                Icons.Default
+                                                                                                        .Visibility
+                                                                                        else
+                                                                                                Icons.Default
+                                                                                                        .VisibilityOff,
+                                                                                        null
+                                                                                )
+                                                                        }
+                                                                },
+                                                                singleLine = true,
+                                                                shape = RoundedCornerShape(12.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.height(16.dp))
+                                                        OutlinedTextField(
+                                                                value = confirmPassword,
+                                                                onValueChange = {
+                                                                        confirmPassword = it
+                                                                },
+                                                                label = {
+                                                                        Text("Confirm Password")
+                                                                },
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                visualTransformation =
+                                                                        if (passwordVisible)
+                                                                                VisualTransformation
+                                                                                        .None
+                                                                        else
+                                                                                PasswordVisualTransformation(),
+                                                                singleLine = true,
+                                                                shape = RoundedCornerShape(12.dp)
+                                                        )
+
+                                                        Spacer(modifier = Modifier.height(32.dp))
+
+                                                        Button(
+                                                                onClick = {
+                                                                        if (isRestoreMode) {
+                                                                                val words =
+                                                                                        recoveryInput
+                                                                                                .trim()
+                                                                                                .lowercase()
+                                                                                                .split(
+                                                                                                        Regex(
+                                                                                                                "\\s+"
+                                                                                                        )
+                                                                                                )
+                                                                                if (words.size ==
+                                                                                                12 &&
+                                                                                                password.isNotEmpty() &&
+                                                                                                password ==
+                                                                                                        confirmPassword
+                                                                                ) {
+                                                                                        viewModel
+                                                                                                .restoreVault(
+                                                                                                        password,
+                                                                                                        words
+                                                                                                )
+                                                                                }
+                                                                        } else {
+                                                                                if (password.isNotEmpty() &&
+                                                                                                password ==
+                                                                                                        confirmPassword
+                                                                                ) {
+                                                                                        viewModel
+                                                                                                .createVault(
+                                                                                                        password,
+                                                                                                        generatedMnemonic
+                                                                                                )
+                                                                                }
+                                                                        }
+                                                                },
+                                                                modifier =
+                                                                        Modifier.fillMaxWidth()
+                                                                                .height(56.dp),
+                                                                shape = RoundedCornerShape(16.dp),
+                                                                colors =
+                                                                        ButtonDefaults.buttonColors(
+                                                                                containerColor =
+                                                                                        BlueGradientEnd,
+                                                                                contentColor =
+                                                                                        Color.White
+                                                                        )
+                                                        ) {
+                                                                Text(
+                                                                        if (isRestoreMode)
+                                                                                "Restore Vault"
+                                                                        else "Finish Setup",
+                                                                        fontSize = 16.sp,
+                                                                        fontWeight = FontWeight.Bold
+                                                                )
+                                                        }
+                                                } else if (state is SetupState.Loading) {
+                                                        Box(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                contentAlignment = Alignment.Center
+                                                        ) {
+                                                                CircularProgressIndicator(
+                                                                        color = BlueGradientEnd
+                                                                )
+                                                        }
+                                                } else if (state is SetupState.Success) {
+                                                        LaunchedEffect(Unit) { onSetupComplete() }
+                                                }
+
+                                                if (state is SetupState.Error) {
+                                                        Spacer(modifier = Modifier.height(16.dp))
+                                                        Text(
+                                                                (state as SetupState.Error).message,
+                                                                color = AccentError,
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                textAlign = TextAlign.Center
+                                                        )
+                                                }
+                                        }
+                                }
+                        }
                 }
-            }
         }
-    }
 }

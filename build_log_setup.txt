@@ -1,0 +1,75 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:kaptGenerateStubsDebugKotlin UP-TO-DATE
+> Task :app:kaptDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:configureCMakeDebug[arm64-v8a]
+> Task :app:buildCMakeDebug[arm64-v8a]
+> Task :app:configureCMakeDebug[armeabi-v7a]
+> Task :app:buildCMakeDebug[armeabi-v7a]
+> Task :app:configureCMakeDebug[x86]
+> Task :app:buildCMakeDebug[x86]
+> Task :app:configureCMakeDebug[x86_64]
+> Task :app:buildCMakeDebug[x86_64]
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:114:45 Unresolved reference: Initial
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:115:61 Unresolved reference: Initial
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:137:55 Cannot infer a type for this parameter. Please specify it explicitly.
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:137:62 Cannot infer a type for this parameter. Please specify it explicitly.
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:138:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:144:72 @Composable invocations can only happen from the context of a @Composable function
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:149:72 @Composable invocations can only happen from the context of a @Composable function
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:170:29 None of the following functions can be called with the arguments supplied: 
+public fun Icon(bitmap: ImageBitmap, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+public fun Icon(painter: Painter, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+public fun Icon(imageVector: ImageVector, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:260:61 No value passed for parameter 'mnemonic'
+e: file:///mnt/Project/Android%20App/Password%20Saver/android/app/src/main/java/com/vaultguard/app/ui/SetupScreen.kt:260:61 No value passed for parameter 'isRestore'
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+39 actionable tasks: 10 executed, 29 up-to-date

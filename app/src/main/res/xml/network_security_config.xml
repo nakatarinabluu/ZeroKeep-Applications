@@ -10,7 +10,8 @@
     <!-- 2. SSL Pinning for Backend -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">zerokeep.vercel.app</domain>
-        <pin-set expiration="2026-01-01">
+        <!-- EXTENDED VALIDITY -->
+        <pin-set expiration="2030-01-01">
             <!-- Leaf Certificate (Vercel/Let's Encrypt - Rotates every 90 days) -->
             <pin digest="SHA-256">DZM9Oxxp3uxt5JJnpUtfT6flVVHLDXP55RI/BtoaY1E=</pin>
             <!-- Backup 1: Let's Encrypt R3 (Intermediate) -->

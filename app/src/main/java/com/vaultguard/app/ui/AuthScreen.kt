@@ -1,171 +1,186 @@
 package com.vaultguard.app.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.vaultguard.app.R
-import com.vaultguard.app.ui.auth.AuthState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.vaultguard.app.ui.auth.AuthViewModel
+import com.vaultguard.app.ui.theme.BlueGradientEnd
+import com.vaultguard.app.ui.theme.BlueGradientStart
+import com.vaultguard.app.ui.theme.SoftCloud
+import com.vaultguard.app.utils.BiometricHelper
 
 @Composable
 fun AuthScreen(
-    onAuthenticated: () -> Unit,
-    onReset: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+        onAuthenticated: () -> Unit,
+        onReset: () -> Unit,
+        viewModel: com.vaultguard.app.ui.auth.AuthViewModel = hiltViewModel()
 ) {
-    var password by remember { mutableStateOf("") }
-    val authState by viewModel.authState.collectAsState()
-    
-    // Determine UI state from ViewModel
-    val attempts = when (val state = authState) {
-        is AuthState.Error -> state.attemptsUsed
-        else -> 0
-    }
-    
-    val isError = attempts > 0
-    val isLoading = authState is AuthState.Loading
-    
-    val context = androidx.compose.ui.platform.LocalContext.current
-    
-    val shakeOffset by remember { mutableFloatStateOf(0f) }
-    var passwordVisible by remember { mutableStateOf(false) }
+        val state by viewModel.authState.collectAsState()
+        var password by remember { mutableStateOf("") }
 
-    // Modern Gradient Background
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                    colors = listOf(
-                        com.vaultguard.app.ui.theme.BrandPurple,
-                        com.vaultguard.app.ui.theme.BrandBlue
-                    )
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Icon
-            Icon(
-                imageVector = Icons.Filled.Lock,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(80.dp)
-                    .padding(bottom = 24.dp)
-            )
-            
-            Text(
-                text = "Welcome Back",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                text = "Enter your master password to unlock.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFE2E8F0),
-                modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
-                textAlign = TextAlign.Center
-            )
+        // Biometric Logic
+        val context = LocalContext.current
+        val activity = remember { context as? androidx.fragment.app.FragmentActivity }
+        val biometricHelper = remember(activity) { activity?.let { BiometricHelper(it) } }
 
-            // Password Field
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Master Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                   val image = if (passwordVisible)
-                       Icons.Filled.Visibility
-                   else
-                       Icons.Filled.VisibilityOff
+        val isBiometricEnabled by viewModel.isBiometricEnabled.collectAsState()
 
-                   IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                       Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
-                   }
-                },
-                isError = isError,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White.copy(alpha = 0.9f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.8f),
-                    errorContainerColor = Color.White.copy(alpha = 0.9f),
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.Transparent
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            if (isError) {
-                Text(
-                    text = "Incorrect password. Attempts remaining: ${7 - attempts}",
-                    color = Color(0xFFEF4444),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { viewModel.attemptUnlock(password) },
-                enabled = !isLoading && password.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = com.vaultguard.app.ui.theme.BrandPurple,
-                    disabledContainerColor = Color.White.copy(alpha = 0.5f),
-                    disabledContentColor = com.vaultguard.app.ui.theme.BrandPurple.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                 if (isLoading) {
-                     CircularProgressIndicator(
-                         modifier = Modifier.size(24.dp),
-                         color = com.vaultguard.app.ui.theme.BrandPurple,
-                         strokeWidth = 2.dp
-                     )
-                 } else {
-                     Text("Unlock Vault", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                 }
-            }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Reset Button
-                TextButton(onClick = onReset) {
-                    Text("Forgot Password? Reset Vault", color = com.vaultguard.app.ui.theme.AccentError)
+        // Logic to auto-trigger biometric if enabled
+        LaunchedEffect(Unit) {
+                if (isBiometricEnabled && biometricHelper?.canAuthenticate() == true) {
+                        biometricHelper.showBiometricPrompt(
+                                onSuccess = { viewModel.loginWithBiometrics() },
+                                onError = { /* Ignore or show toast */}
+                        )
                 }
-
         }
-    }
 
+        // Effect for successful login (nav)
+        LaunchedEffect(state) {
+                if (state is com.vaultguard.app.ui.auth.AuthState.Success) {
+                        onAuthenticated()
+                }
+        }
+
+        Box(
+                modifier = Modifier.fillMaxSize().background(SoftCloud),
+                contentAlignment = Alignment.Center
+        ) {
+                Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(24.dp)
+                ) {
+                        // App Logo
+                        Box(
+                                modifier =
+                                        Modifier.size(100.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                        Brush.linearGradient(
+                                                                colors =
+                                                                        listOf(
+                                                                                BlueGradientStart,
+                                                                                BlueGradientEnd
+                                                                        )
+                                                        )
+                                                )
+                                                .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                        ) {
+                                Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = "Logo",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(48.dp)
+                                )
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Text(
+                                text = "Welcome Back",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                                text = "Secure Vault Access",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        OutlinedTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = { Text("Master Password") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                colors =
+                                        OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = BlueGradientEnd,
+                                                unfocusedBorderColor = Color.LightGray,
+                                                focusedLabelColor = BlueGradientEnd
+                                        )
+                        )
+
+                        if (state is com.vaultguard.app.ui.auth.AuthState.Error) {
+                                Text(
+                                        text = "Incorrect Password", // simplified error msg
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.padding(top = 8.dp)
+                                )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                                onClick = { viewModel.login(password) },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors =
+                                        ButtonDefaults.buttonColors(
+                                                containerColor = BlueGradientEnd
+                                        )
+                        ) {
+                                Text(
+                                        text = "Unlock Vault",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                )
+                        }
+
+                        if (biometricHelper?.canAuthenticate() == true) {
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                IconButton(
+                                        onClick = {
+                                                biometricHelper.showBiometricPrompt(
+                                                        onSuccess = {
+                                                                viewModel.loginWithBiometrics()
+                                                        },
+                                                        onError = { /* Error toast? */}
+                                                )
+                                        },
+                                        modifier = Modifier.size(64.dp)
+                                ) {
+                                        Icon(
+                                                imageVector = Icons.Default.Fingerprint,
+                                                contentDescription = "Biometric Login",
+                                                tint = BlueGradientEnd,
+                                                modifier = Modifier.size(48.dp)
+                                        )
+                                }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TextButton(onClick = onReset) {
+                                Text("Forgot Password? Reset Vault", color = Color.Gray)
+                        }
+                }
+        }
 }
